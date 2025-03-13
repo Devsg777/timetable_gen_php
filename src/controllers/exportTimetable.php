@@ -14,7 +14,7 @@ $db = $database->getConnection();
 $timetable = new Timetable($db);
 
 $combinations = $timetable->getAllCombinations(); // Fetch all combinations
-$time_slots = ['09:00 - 10:00', '10:00 - 11:00', '11:00 - 12:00', '12:00 - 13:00', '13:00 - 14:00', '14:00 - 15:00', '15:00 - 16:00', '16:00 - 17:00'];
+$time_slots = ['10:00 - 11:00','11:00 - 12:00','12:00 - 13:00', '01:00 - 02:00', '02:00 - 03:00', '03:00 - 04:00', '04:00 - 05:00', '05:00 - 06:00'];
 $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 $exportType = $_GET['type'] ?? 'excel'; // Default to Excel export

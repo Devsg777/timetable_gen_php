@@ -28,7 +28,7 @@ $subjects =  $subject->getAllSubjects();
 $teachers = $teacher->getTeachers();
 $classrooms = $classroom->getAllClassrooms();
 
-$time_slots = ['09:00 - 10:00', '10:00 - 11:00', '11:00 - 12:00', '12:00 - 13:00', '13:00 - 14:00', '14:00 - 15:00', '15:00 - 16:00', '16:00 - 17:00'];
+$time_slots = ['10:00 - 11:00', '11:00 - 12:00','12:00 - 13:00', '01:00 - 02:00', '02:00 - 03:00', '03:00 - 04:00', '04:00 - 05:00','05:00 - 06:00'];
 $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 ?>
 
@@ -130,12 +130,15 @@ $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
                                         // $room[] = htmlspecialchars($timetable_data[$day][$slot]['classroom']);
                                         // $com[] = htmlspecialchars($timetable_data[$day][$slot]['combination']);
                                         // $sem[] = htmlspecialchars($timetable_data[$day][$slot]['semester']); 
+                                        // empty($entries[$slot]) ? '---' : "[ ".$entries[$slot]['semester']." - ".$entries[$slot]['combination']." <br>".$entries[$slot]['subject']. "(". $entries[$slot]['classroom']. ")<BR>". $entries[$slot]['teacher']."]" ;  
                                         
                                     }
                                 }
                                  
                                 ?>
-                                <td class="border border-gray-300 p-2 text-center"><?= empty($entries[$slot]) ? '---' : "[ ".$entries[$slot]['semester']." - ".$entries[$slot]['combination']." <br>".$entries[$slot]['subject']. "(". $entries[$slot]['classroom']. ")<BR>". $entries[$slot]['teacher']."]" ;  ?></td>
+                                <td class="border border-gray-300 p-2 text-center">
+                                  ---
+                                </td>
                             <?php endforeach; ?>
                         </tr>
                     <?php endforeach; ?>
