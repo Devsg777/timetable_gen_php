@@ -46,5 +46,14 @@ if(isset($_GET['delete_id'])){
     exit();
 }
 
+if(isset($_POST['add'])){
+    if($timetable->addTimetableEntry($_POST['day'],$_POST['time'],$_POST['isLab'],$_POST['combination_id'],$_POST['subject'], $_POST['teacher'], $_POST['classroom'])){
+        header("Location: ../views/admin/timetable.php?success=Timetable Entry Added Successfully");
+    }else{
+        header("Location: ../views/admin/timetable.php?error=Failed to Add Timetable Entry");
+    }
+    exit();
+}
+
 
 ?>

@@ -1,20 +1,20 @@
 <?php
 include_once __DIR__ . '/../../config/database.php';
-include_once "../../models/admin.php";
+include_once "../../models/Teacher.php";
 
 $database = new Database();
 $db = $database->getConnection();
 
 // Initialize Admin Model
-$admin = new Admin($db);
+$teacher = new Teacher($db);
 
 // Check Login Submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST['email'];
     $password = $_POST['password'];
 
-    if ($admin->login($email, $password)) {
-        header("Location: dashboard.php"); // Redirect to Admin Dashboard
+    if ($teacher->login($email, $password)) {
+        header("Location: dashboard.php"); // Redirect to Dashboard
         exit();
     } else {
         $error = "Invalid email or password!";
@@ -25,12 +25,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Admin Login</title>
+    <title>Teacher Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="flex items-center justify-center h-screen bg-gray-100" >
+<body class="flex items-center justify-center h-screen bg-gray-100">
     <div class="bg-white p-6 rounded-lg shadow-md w-96">
-        <h2 class="text-2xl font-bold text-center" >Admin Login</h2>
+        <h2 class="text-2xl font-bold text-center">Teacher Login</h2>
         <?php if (isset($error)) { echo "<p class='text-red-500'>$error</p>"; } ?>
         <form method="POST" class="mt-4" >
             <input type="email" name="email" placeholder="Email" required class="w-full p-2 border rounded mb-2">

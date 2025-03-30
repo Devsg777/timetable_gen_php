@@ -9,6 +9,9 @@ $db = $database->getConnection();
 // Combination Model Instance
 $combination = new Combination($db);
 
+
+
+
 // Handle Add Combination
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add'])) {
     $name = $_POST['name'];
@@ -39,6 +42,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit'])) {
         exit();
     }
 }
+
+
 
 // Handle Delete Combination
 if (isset($_GET['delete'])) {

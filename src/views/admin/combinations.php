@@ -21,8 +21,8 @@ $combination = new Combination($db);
 $combinations = $combination->getCombinations();
 ?>
 
-<?php include_once(__DIR__ . '/header.php'); ?>
 
+<?php include_once(__DIR__ . '/header.php'); ?>
     <div class="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-6">
         <h2 class="text-2xl font-bold mb-4">Manage Combinations</h2>
         
@@ -53,7 +53,7 @@ $combinations = $combination->getCombinations();
                                    class="text-blue-500 hover:underline">Edit</a> |
                                    <a href="../../controllers/combinationController.php?delete=<?= $combination['id'] ?>" 
                                  onclick="return confirm('Are you sure you want to delete this combination?');" class="text-red-500 hover:underline"> Delete</a>
-                            </td>
+                    </td>
                         </tr>
                     <?php endforeach; ?>
                 <?php else: ?>

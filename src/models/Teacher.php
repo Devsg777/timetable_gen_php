@@ -39,5 +39,27 @@ class Teacher {
         $stmt = $this->conn->prepare($query);
         return $stmt->execute([$id]);
     }
+    public function login($email, $password) {
+        $query = "SELECT * FROM teachers WHERE email = :email";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute(['email' => $email]);
+        $teacher = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($teacher && password_verify($password, $teacher['password'])) {
+            session_start();
+            $_SESSION['teacher_id'] = $teacher['id'];
+            $_SESSION['teacher_name'] = $teacher['name'];
+            $_SESSION['teacher_email'] = $teacher['email'];
+            return true;
+        }
+        return false;
+    }
+
+    public function logout() {
+        session_start();
+        session_destroy();
+        header("Location: login.php");
+        exit();
+    }
 }
 ?>

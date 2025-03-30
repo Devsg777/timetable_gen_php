@@ -1,4 +1,6 @@
 <?php
+
+// Database class to connect to the database
 class Database {
     private $host = "localhost";
     private $dbname = "timetable_gen";
@@ -16,5 +18,7 @@ class Database {
         }
         return $this->conn;
     }
+
 }
+
 ?>

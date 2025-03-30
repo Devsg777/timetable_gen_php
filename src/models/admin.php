@@ -10,6 +10,7 @@ class Admin {
 
     public function login($email, $password) {
         $query = "SELECT * FROM admins WHERE email = :email";
+
         $stmt = $this->conn->prepare($query);
         $stmt->execute(['email' => $email]);
         $admin = $stmt->fetch(PDO::FETCH_ASSOC);

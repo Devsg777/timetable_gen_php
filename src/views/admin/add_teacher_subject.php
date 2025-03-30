@@ -40,7 +40,6 @@ if (isset($_GET['id'])) {
                     <option value="<?= $s['id'] ?>"><?= $s['name'] ?></option>
                 <?php endforeach; ?>
             </select>
-
             <button type="submit" name="add" class="w-full bg-blue-600 text-white px-4 py-2 rounded-md">Add Mapping</button>
         </form>
     </div>

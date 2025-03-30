@@ -84,7 +84,9 @@ $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
                                             <a href="../../controllers/timetableController.php?delete_id=<?= htmlspecialchars($entry['entry_id'] ?? ''); ?>" class="text-red-500">Delete</a>
                                         </td>
                                     <?php else : ?>
-                                        <td class="border border-gray-300 p-2 text-center text-gray-400">---</td>
+                                        <td class="border border-gray-300 p-2 text-center text-gray-400">
+                                        <button onclick="openAddModal( '<?= htmlspecialchars($day); ?>', '<?= htmlspecialchars($slot); ?>','<?= htmlspecialchars($combination['combination_id'])?>','<?= htmlspecialchars($combination['name'])?>','<?= htmlspecialchars($combination['semester'])?>')" class="text-blue-500">+</button>
+                                        </td>
                                     <?php endif; ?>
                                 <?php endforeach; ?>
                             </tr>
@@ -188,6 +190,55 @@ $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         </div>
     </div>
 
+    <div id="addModal" class="fixed inset-0 hidden bg-gray-600 bg-opacity-50 flex justify-center items-center">
+            <div class="bg-white p-6 rounded-lg w-1/3 shadow-lg">
+                <h2 class="text-xl font-bold mb-4">Add Timetable Entry</h2>
+                <form id="addForm" method="POST" action="../../controllers/timetableController.php">
+                    <input type="hidden" name="day" id="addDay">
+                    <input type="hidden" name="time" id="addTime">
+                    <input type="hidden" name="combination_id" id="combination">
+                    <h4 class="text-xl font-bold mb-4" id='comb'></h4>
+                    <p>Day: <span class="font-bold" id='dayshow'></span> Time: <span class="font-bold" id='timeshow'></span></p>
+                    <div class="mb-4">
+                        <label class="block font-semibold">Subject</label>
+                        <select name="subject" id="addSubject" class="w-full p-2 border rounded">
+                            <option value="">Select Subject</option>
+                            <?php foreach ($subjects as $subject): ?>
+                                <option value="<?= $subject['id'] ?>"><?= $subject['name'] ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block font-semibold">Is this Lab?</label>
+                        <input type="checkbox" class="" name='isLab'>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block font-semibold">Teacher</label>
+                        <select name="teacher" id="addTeacher" class="w-full p-2 border rounded">
+                            <option value="">Select Teacher</option>
+                            <?php foreach ($teachers as $teacher): ?>
+                                <option value="<?= $teacher['id'] ?>"><?= $teacher['name'] ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block font-semibold">Classroom</label>
+                        <select name="classroom" id="addClassroom" class="w-full p-2 border rounded">
+                            <option value="">Select Classroom</option>
+                            <?php foreach ($classrooms as $classroom): ?>
+                                <option value="<?= $classroom['id'] ?>"><?= $classroom['room_no'] ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="flex justify-end space-x-4">
+                        <button type="button" onclick="closeAddModal()" class="px-4 py-2 bg-gray-500 text-white rounded">Cancel</button>
+                        <button type="submit" name="add" class="px-4 py-2 bg-green-500 text-white rounded">Assign</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script>
         function openEditModal( entry_id,id,subject, teacher, classroom) {
             document.getElementById('editSubject').value = subject;
@@ -198,6 +249,18 @@ $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         }
         function closeEditModal() {
             document.getElementById('editModal').classList.add('hidden');
+        }
+        function openAddModal(day,time,c_id,comb,sem) {
+            document.getElementById('addDay').value = day;
+            document.getElementById('addTime').value = time;
+            document.getElementById('dayshow').innerText = day;
+            document.getElementById('timeshow').innerText = time;
+            document.getElementById('combination').value = c_id;
+            document.getElementById('comb').innerText = "Combination: "+comb+" - Semester "+sem;
+            document.getElementById('addModal').classList.remove('hidden');
+        }
+        function closeAddModal() {
+            document.getElementById('addModal').classList.add('hidden');
         }
     </script>
 </body>

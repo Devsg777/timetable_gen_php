@@ -1,5 +1,6 @@
 <?php
 include_once "../../config/database.php";
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start(); // Start session only if not already started
 }
@@ -18,6 +19,7 @@ if (!isset($_SESSION['admin_id'])) {
     <title>Admin Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    
 </head>
 <body class="bg-gray-100 flex">
 
@@ -104,7 +106,10 @@ if (!isset($_SESSION['admin_id'])) {
                 <i class="fas fa-calendar-alt text-red-600 text-3xl"></i>
                 <h3 class="text-lg font-bold mt-2">Timetable</h3>
             </a>
+            
+
         </div>
+        
     </div>
 
 </body>
