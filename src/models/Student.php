@@ -81,5 +81,30 @@ class Student {
             die("Error deleting student: " . $e->getMessage());
         }
     }
+    public function login($email, $password) {
+        $query = "SELECT * FROM students WHERE email = :email";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute(['email' => $email]);
+        $student  = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+        if ($student && password_verify($password, $student['password'])) {
+            session_start();
+            $_SESSION['student_id'] = $student['id'];
+            $_SESSION['student_name'] = $student['name'];
+            $_SESSION['student_email'] = $student['email'];
+            $_SESSION['student_com'] = $student['combiantion_id'];
+            return true;
+        }
+        return false;
+    }
+    
+    
+    public function logout() {
+        session_start();
+        session_destroy();
+        header("Location: login.php");
+        exit();
+    }
 }
+
 ?>

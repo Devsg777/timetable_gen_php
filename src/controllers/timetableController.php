@@ -55,5 +55,30 @@ if(isset($_POST['add'])){
     exit();
 }
 
+if (isset($_GET['swap'])) {
+    $day1 = $_GET['day1'];
+    $time1 = $_GET['time1'];
+    $day2 = $_GET['day2'];
+    $time2 = $_GET['time2'];
+    $combination_id = $_GET['combination_id'];
 
+    // Get both entries
+    $entry1 = $timetable->getEntryByTimeSlot($combination_id, $day1, $time1);
+    $entry2 = $timetable->getEntryByTimeSlot($combination_id, $day2, $time2);
+
+    // Swap the data
+    if ($entry1 && $entry2) {
+        $timetable->updateEntryTimeSlot($entry1['id'], $day2, $time2);
+        $timetable->updateEntryTimeSlot($entry2['id'], $day1, $time1);
+    } elseif ($entry1) {
+        $timetable->updateEntryTimeSlot($entry1['id'], $day2, $time2);
+    } elseif ($entry2) {
+        $timetable->updateEntryTimeSlot($entry2['id'], $day1, $time1);
+    }
+
+    header("Location: ../views/admin/timetable.php?success=Timetable Entry Swapped Successfully");
+    exit();
+}
 ?>
+
+

@@ -54,6 +54,7 @@ class Teacher {
         }
         return false;
     }
+    
 
     public function logout() {
         session_start();

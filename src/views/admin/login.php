@@ -36,7 +36,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <input type="email" name="email" placeholder="Email" required class="w-full p-2 border rounded mb-2">
             <input type="password" name="password" placeholder="Password" required class="w-full p-2 border rounded mb-2">
             <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-700">Login</button>
+            <div class="text-center pt-3 mt-2"> GO back to <a class="text-blue-400 underlined " href="../../../index.php">Home</a></div>
         </form>
+       
     </div>
 </body>
 </html>

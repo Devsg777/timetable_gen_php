@@ -39,6 +39,7 @@ $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Timetable Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-100 p-6">
     <div class="max-w-7xl mx-auto">
@@ -80,12 +81,14 @@ $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
                                             <b><?= htmlspecialchars($entry['subject']); ?></b><br>
                                             <span class="text-gray-600">Teacher: <?= htmlspecialchars($entry['teacher']); ?></span><br>
                                             <span class="text-gray-500">Room: <?= htmlspecialchars($entry['classroom']); ?></span><br>
-                                            <button onclick="openEditModal( '<?=htmlspecialchars($entry['entry_id']);?>','<?= htmlspecialchars($entry['subject']); ?>', '<?= htmlspecialchars($entry['teacher']); ?>', '<?= htmlspecialchars($entry['classroom']); ?>', '<?= htmlspecialchars($day); ?>', '<?= htmlspecialchars($slot); ?>')" class="text-blue-500">Edit</button>
-                                            <a href="../../controllers/timetableController.php?delete_id=<?= htmlspecialchars($entry['entry_id'] ?? ''); ?>" class="text-red-500">Delete</a>
+                                            <button onclick="openEditModal( '<?=htmlspecialchars($entry['entry_id']);?>','<?= htmlspecialchars($entry['subject']); ?>', '<?= htmlspecialchars($entry['teacher']); ?>', '<?= htmlspecialchars($entry['classroom']); ?>', '<?= htmlspecialchars($day); ?>', '<?= htmlspecialchars($slot); ?>')" class="text-blue-500"><i class="fas fa-edit text-blue-700"></i></button>
+                                            <a href="../../controllers/timetableController.php?delete_id=<?= htmlspecialchars($entry['entry_id'] ?? ''); ?>" class="text-red-500"><i class="fas fa-trash text-danger" aria-hidden="true"></i></a>
+                                            <button onclick="handleSwap('<?= $day ?>', '<?= $slot ?>', '<?= $combination['combination_id'] ?>')" class="text-purple-600"><i class="fa fa-exchange text-purple-400" aria-hidden="true"></i></button>
                                         </td>
                                     <?php else : ?>
-                                        <td class="border border-gray-300 p-2 text-center text-gray-400">
-                                        <button onclick="openAddModal( '<?= htmlspecialchars($day); ?>', '<?= htmlspecialchars($slot); ?>','<?= htmlspecialchars($combination['combination_id'])?>','<?= htmlspecialchars($combination['name'])?>','<?= htmlspecialchars($combination['semester'])?>')" class="text-blue-500">+</button>
+                                        <td class="border border-gray-300 p-2 text-center text-gray-400 ">
+                                        <button onclick="openAddModal( '<?= htmlspecialchars($day); ?>', '<?= htmlspecialchars($slot); ?>','<?= htmlspecialchars($combination['combination_id'])?>','<?= htmlspecialchars($combination['name'])?>','<?= htmlspecialchars($combination['semester'])?>')" ><i class="fa fa-plus text-black text-sm" aria-hidden="true"></i></button>
+                                         | <button onclick="handleSwap('<?= $day ?>', '<?= $slot ?>', '<?= $combination['combination_id'] ?>')" class="text-purple-600"><i class="fa fa-exchange text-purple-400 text-sm" aria-hidden="true"></i></button>
                                         </td>
                                     <?php endif; ?>
                                 <?php endforeach; ?>
@@ -97,98 +100,7 @@ $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         <?php endforeach; ?>
 
         <!-- Master Timetable -->
-        <div class="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-xl font-bold mb-4 text-center">Master Timetable</h2>
-            <table class="w-full border-collapse border border-gray-300">
-                <thead>
-                    <tr class="bg-gray-200">
-                        <th class="border border-gray-300 p-2">Day</th>
-                        <?php foreach ($time_slots as $slot) : ?>
-                            <th class="border border-gray-300 p-2"><?= htmlspecialchars($slot); ?></th>
-                        <?php endforeach; ?>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($days as $day) : ?>
-                        <tr>
-                            <td class="border border-gray-300 p-2 bg-gray-100 font-bold"><?= htmlspecialchars($day); ?></td>
-                            <?php foreach ($time_slots as $slot) : ?>
-                                <?php
-                                $entries = [];
-                                // $teachers = [];
-                                // $room = [];
-                                // $com = [];
-                                // $sem = [];
-                                foreach ($combinations as $combination) {
-                                    if (isset($timetable_data[$day][$slot])){
-                                        $entries[$slot] = [
-                                            "subject" => htmlspecialchars($timetable_data[$day][$slot]['subject']),
-                                            "teacher" => htmlspecialchars($timetable_data[$day][$slot]['teacher']),
-                                            "classroom" => htmlspecialchars($timetable_data[$day][$slot]['classroom']),
-                                            "combination" => htmlspecialchars($timetable_data[$day][$slot]['combination']),
-                                            "semester" => htmlspecialchars($timetable_data[$day][$slot]['semester']),
-                                        ];
-                                        // $teachers[] = htmlspecialchars($timetable_data[$day][$slot]['teacher']);
-                                        // $room[] = htmlspecialchars($timetable_data[$day][$slot]['classroom']);
-                                        // $com[] = htmlspecialchars($timetable_data[$day][$slot]['combination']);
-                                        // $sem[] = htmlspecialchars($timetable_data[$day][$slot]['semester']); 
-                                        // empty($entries[$slot]) ? '---' : "[ ".$entries[$slot]['semester']." - ".$entries[$slot]['combination']." <br>".$entries[$slot]['subject']. "(". $entries[$slot]['classroom']. ")<BR>". $entries[$slot]['teacher']."]" ;  
-                                        
-                                    }
-                                }
-                                 
-                                ?>
-                                <td class="border border-gray-300 p-2 text-center">
-                                  ---
-                                </td>
-                            <?php endforeach; ?>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
 
-        <!-- Edit Modal -->
-        <div id="editModal" class="fixed inset-0 hidden bg-gray-600 bg-opacity-50 flex justify-center items-center">
-            <div class="bg-white p-6 rounded-lg w-1/3 shadow-lg">
-                <h2 class="text-xl font-bold mb-4">Edit Timetable Entry</h2>
-                <form id="editForm" method="POST" action="../../controllers/timetableController.php">
-                    <input type="hidden" name="id" id="editId">
-                    <div class="mb-4">
-                        <label class="block font-semibold">Subject</label>
-                        <select name="subject" id="editSubject" class="w-full p-2 border rounded">
-                            <option value="">Select Subject</option>
-                            <?php foreach ($subjects as $subject): ?>
-                                <option value="<?= $subject['id'] ?>"><?= $subject['name'] ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block font-semibold">Teacher</label>
-                        <select name="teacher" id="editTeacher" class="w-full p-2 border rounded">
-                            <option value="">Select Teacher</option>
-                            <?php foreach ($teachers as $teacher): ?>
-                                <option value="<?= $teacher['id'] ?>"><?= $teacher['name'] ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block font-semibold">Classroom</label>
-                        <select name="classroom" id="editClassroom" class="w-full p-2 border rounded">
-                            <option value="">Select Classroom</option>
-                            <?php foreach ($classrooms as $classroom): ?>
-                                <option value="<?= $classroom['id'] ?>"><?= $classroom['room_no'] ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="flex justify-end space-x-4">
-                        <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-gray-500 text-white rounded">Cancel</button>
-                        <button type="submit" name="edit" class="px-4 py-2 bg-green-500 text-white rounded">Save Changes</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
 
     <div id="addModal" class="fixed inset-0 hidden bg-gray-600 bg-opacity-50 flex justify-center items-center">
             <div class="bg-white p-6 rounded-lg w-1/3 shadow-lg">
@@ -262,6 +174,26 @@ $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         function closeAddModal() {
             document.getElementById('addModal').classList.add('hidden');
         }
+        let swapFirst = null;
+
+function handleSwap(day, time, combinationId) {
+    if (!swapFirst) {
+        swapFirst = { day, time, combinationId };
+        alert(`Selected Slot: ${day}, ${time}`);
+    } else {
+        // Make sure both are from the same combination
+        if (swapFirst.combinationId !== combinationId) {
+            alert("You can only swap slots within the same combination.");
+            swapFirst = null;
+            return;
+        }
+
+        // Send swap request
+        const url = `../../controllers/timetableController.php?swap=1&day1=${swapFirst.day}&time1=${swapFirst.time}&day2=${day}&time2=${time}&combination_id=${combinationId}`;
+        window.location.href = url;
+    }
+}
+
     </script>
 </body>
 </html>

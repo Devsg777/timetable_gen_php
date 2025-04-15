@@ -374,4 +374,36 @@ class Timetable
 
         return $timetable;
     }
+    public function getEntryByTimeSlot($combination_id, $day, $time_slot) {
+        // Assume $time_slot = "10:00 - 11:00"
+        list($start, $end) = explode(' - ', $time_slot);
+    
+        $query = "SELECT * FROM timetable WHERE combination_id = :combination_id AND day = :day AND start_time = :start_time AND end_time = :end_time";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':combination_id', $combination_id);
+        $stmt->bindParam(':day', $day);
+        $stmt->bindParam(':start_time', $start);
+        $stmt->bindParam(':end_time', $end);
+        $stmt->execute();
+    
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+    
+    
+    public function updateEntryTimeSlot($entry_id, $day, $time) {
+        // Split time range into start and end times
+        $time_range = explode(" - ", $time); // Splitting input
+        $start_time = $time_range[0] . ":00"; // Format as HH:MM:SS
+        $end_time = $time_range[1] . ":00"; // Format as HH:MM:SS
+    
+        $query = "UPDATE timetable SET day = :day, start_time = :start_time, end_time = :end_time WHERE id = :entry_id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':day', $day);
+        $stmt->bindParam(':start_time', $start_time);
+        $stmt->bindParam(':end_time', $end_time);
+        $stmt->bindParam(':entry_id', $entry_id);
+    
+        return $stmt->execute();
+    }
+    
 }
