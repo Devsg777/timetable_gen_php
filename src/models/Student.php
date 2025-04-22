@@ -1,6 +1,7 @@
 <?php
 class Student {
     private $conn;
+    private $table_name = "students";
     
     public function __construct($db) {
         $this->conn = $db;
@@ -26,19 +27,27 @@ class Student {
     }
 
     // Get All Students
-    public function getAllStudents() {
-        try {
-            $query = "SELECT s.id, s.name, s.email, s.phone_no, s.address, c.name AS combination_name, c.semester As combination_semester 
-                      FROM students s 
-                      JOIN combinations c ON s.combination_id = c.id 
-                      ORDER BY s.id DESC";
-            $stmt = $this->conn->prepare($query);
-            $stmt->execute();
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (PDOException $e) {
-            die("Error fetching students: " . $e->getMessage());
-        }
+    public function getAllStudentsWithCombination() {
+        $query = "SELECT
+                    s.id,
+                    s.name,
+                    s.email,
+                    s.phone_no,
+                    c.id AS combination_id,
+                    c.name AS combination_name,
+                    c.semester AS combination_semester
+                FROM
+                    " . $this->table_name . " s
+                LEFT JOIN
+                    combinations c ON s.combination_id = c.id
+                ORDER BY
+                    s.name";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+    
+    
 
     // Get Student by ID
     public function getStudentById($id) {
@@ -52,25 +61,49 @@ class Student {
         }
     }
 
-    // Update Student
-    public function updateStudent($id, $name, $email, $combination_id, $phone_no, $address) {
-        try {
-            $query = "UPDATE students SET name = :name, email = :email, combination_id = :combination_id, 
-                      phone_no = :phone_no, address = :address WHERE id = :id";
-            $stmt = $this->conn->prepare($query);
-            return $stmt->execute([
-                'id' => $id,
-                'name' => $name,
-                'email' => $email,
-                'combination_id' => $combination_id,
-                'phone_no' => $phone_no,
-                'address' => $address
-            ]);
-        } catch (PDOException $e) {
-            die("Error updating student: " . $e->getMessage());
+    public function updateStudent($id, $name, $email, $phone_no, $address, $combination_id) {
+        // Check if the combination_id exists in the combinations table
+        $checkQuery = "SELECT id FROM combinations WHERE id = :combination_id";
+        $checkStmt = $this->conn->prepare($checkQuery);
+        $checkStmt->bindParam(':combination_id', $combination_id);
+        $checkStmt->execute();
+        if ($checkStmt->rowCount() == 0) {
+            die("Error updating student: Invalid combination_id. Please ensure the combination_id exists in the combinations table.");
         }
+
+        $query = "UPDATE " . $this->table_name . " SET name = :name, email = :email, phone_no = :phone_no, address = :address, combination_id = :combination_id WHERE id = :id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':id', $id);
+        $stmt->bindParam(':name', $name);
+        $stmt->bindParam(':email', $email);
+        $stmt->bindParam(':phone_no', $phone_no);
+        $stmt->bindParam(':address', $address);
+        $stmt->bindParam(':combination_id', $combination_id);
+
+        if ($stmt->execute()) {
+            return true;
+        }
+        return false;
     }
 
+    public function updateStudentWithPass($id, $name, $email, $phone_no, $address, $combination_id, $password) {
+        // Note: This function does NOT have the combination_id existence check
+
+        $query = "UPDATE " . $this->table_name . " SET name = :name, email = :email, phone_no = :phone_no, address = :address, combination_id = :combination_id, password = :password WHERE id = :id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':id', $id);
+        $stmt->bindParam(':name', $name);
+        $stmt->bindParam(':email', $email);
+        $stmt->bindParam(':phone_no', $phone_no);
+        $stmt->bindParam(':address', $address);
+        $stmt->bindParam(':combination_id', $combination_id);
+        $stmt->bindParam(':password', $password);
+
+        if ($stmt->execute()) {
+            return true;
+        }
+        return false;
+    }
     // Delete Student
     public function deleteStudent($id) {
         try {
@@ -102,8 +135,6 @@ class Student {
     public function logout() {
         session_start();
         session_destroy();
-        header("Location: login.php");
-        exit();
     }
 }
 

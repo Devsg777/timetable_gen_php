@@ -22,7 +22,7 @@ $timetable = new Timetable($db);
 $combinations = $timetable->getAllCombinations(); // Fetch distinct combinations
 
 
-$time_slots = ['10:00 - 11:00', '11:00 - 12:00','12:00 - 13:00', '01:00 - 02:00', '02:00 - 03:00', '03:00 - 04:00', '04:00 - 05:00','05:00 - 06:00'];
+$time_slots =  ['09:00 - 10:00', '10:00 - 11:00', '11:00 - 12:00', '12:00 - 01:00', '01:00 - 02:00', '02:00 - 03:00', '03:00 - 04:00', '04:00 - 05:00'];
 $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 ?>
 
@@ -36,7 +36,7 @@ $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 </head>
 <body class="bg-gray-100 p-6">
     <div class="max-w-7xl mx-auto">
-        <button onclick="window.location.href = 'dashboard.php'" class=" absolute t-0 right-0 mr-4 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 mb-4">Go To Dashboard</button>
+        <button onclick="window.history.back()" class=" absolute t-0 right-0 mr-4 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 mb-4">Go Back</button>
         <h1 class="text-3xl font-bold mb-6 text-center">Timetable Management</h1>
 
         <div class="flex space-x-4 mb-4">

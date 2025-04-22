@@ -14,7 +14,6 @@ $subjects = $subject->getAllSubjects();
 if (isset($_GET['id'])) {
     $id = $_GET['id'];
 }
-
 ?>
 
 <?php include "header.php"; ?> 
@@ -42,6 +41,9 @@ if (isset($_GET['id'])) {
             </select>
             <button type="submit" name="add" class="w-full bg-blue-600 text-white px-4 py-2 rounded-md">Add Mapping</button>
         </form>
+        <div class="align-center m-3 text-center ">
+            <a class="text-blue-500 text-center " href="teacher_subjects.php">Go to See all Subjects and Teacher assign</a>
+        </div>
     </div>
 <?php include "footer.php"; ?>
 

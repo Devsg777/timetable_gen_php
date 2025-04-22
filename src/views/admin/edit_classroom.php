@@ -8,6 +8,10 @@ $classroom = new Classroom($db);
 
 $id = $_GET['id'];
 $classData = $classroom->getClassroomById($id);
+$error = $_GET['error'] ?? null;
+if ($error) {
+    echo "<div class='text-red-500 text-center mb-4'>$error</div>";
+}
 ?>
 
 <?php include "header.php"; ?>

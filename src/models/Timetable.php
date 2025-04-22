@@ -43,8 +43,8 @@ class Timetable
 
         // Define days and time slots
         $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        $theory_time_slots = ['10:00:00', '11:00:00', '12:00:00', '02:00:00', '03:00:00', '04:00:00'];
-        $lab_time_slots = ['10:00:00','02:00:00']; // Labs are 3-hour sessions, so only one slot is needed
+        $theory_time_slots = ['09:00:00', '10:00:00', '11:00:00', '12:00:00', '02:00:00', '03:00:00','04:00:00']; // 1-hour slots for theory classes
+        $lab_time_slots = ['09:00:00','02:00:00']; // Labs are 3-hour sessions, so only one slot is needed
 
         // Initialize data structures
         $schedule = []; // To store the final timetable

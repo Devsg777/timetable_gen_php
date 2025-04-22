@@ -8,10 +8,10 @@ $timetable = new Timetable($db);
 $timetable_data = $timetable->getTimetableByTeacherId_Data($_SESSION['teacher_id']);
 
 ?>
-
+        <h1 class="text-3xl font-semibold text-gray-800 mb-8">Welcome ,<?= htmlspecialchars($_SESSION['teacher_name'])?>! <span class="text-sm ">(<?= htmlspecialchars($_SESSION['teacher_email'])?>)</span></h1>
+        
         <!-- Main Content -->
         <div class="flex-1 p-10">
-            <h3>Welcome</h3>
             <!-- Timetable Section -->
             <section id="timetable" class="mb-10">
                 <h2 class="text-xl font-semibold mb-4">Your Timetable</h2>
@@ -36,7 +36,6 @@ $timetable_data = $timetable->getTimetableByTeacherId_Data($_SESSION['teacher_id
                             </tr>
                         <?php endforeach; ?>
                         <!-- Timetable rows dynamically inserted here -->
-                       
                     </tbody>
                 </table>
             </section>

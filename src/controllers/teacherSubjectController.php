@@ -12,10 +12,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["add"])) {
     $subject_id = $_POST["subject_id"];
 
     if ($teacherSubject->addMapping($teacher_id, $subject_id)) {
-        header("Location: ../views/admin/teacher_subjects.php?success=Mapping Added");
+        header("Location: ../views/admin/teachers.php?success=Mapping Added");
         exit();
     } else {
-        header("Location: ../views/admin/teacher_subjects.php?error=Failed to add mapping");
+        header("Location: ../views/admin/teachers.php?error=Failed to add mapping");
         exit();
     }
 }

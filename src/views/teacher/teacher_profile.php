@@ -1,4 +1,4 @@
-<?php include "./header.php"; 
+<?php include "./header.php";
     include_once "../../config/database.php";
     include_once "../../models/Teacher.php";
 
@@ -14,43 +14,38 @@
         header("Location: ./../../index.php");
     }
 
-
-
-
     if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['change_password'])) {
         $current_password = $_POST['current_password'];
         $new_password = $_POST['new_password'];
         $confirm_password = $_POST['confirm_password'];
-    
+
         // Fetch stored password hash
         $password_sql = "SELECT password FROM teachers WHERE id = ?";
-        $password_stmt = $db->$conn->prepare($password_sql);
-        $password_stmt->bind_param("i", $teacher_id);
+        $password_stmt = $db->prepare($password_sql); // Corrected line
+        $password_stmt->bindParam(1, $teacher_id, PDO::PARAM_INT); // Use PDO::bindParam
         $password_stmt->execute();
-        $password_stmt->bind_result($hashed_password);
-        $password_stmt->fetch();
-        $password_stmt->close();
+        $password_stmt->bindColumn(1, $hashed_password); // Use bindColumn
+        $password_stmt->fetch(PDO::FETCH_BOUND); // Fetch using PDO::FETCH_BOUND
+        $password_stmt->closeCursor(); // Use closeCursor
 
-
-    if (!password_verify($current_password, $hashed_password)) {
-        $error_msg = "Current password is incorrect!";
-    } elseif ($new_password !== $confirm_password) {
-        $error_msg = "New passwords do not match!";
-    } else {
-        $new_hashed_password = password_hash($new_password, PASSWORD_BCRYPT);
-        $update_password_sql = "UPDATE teachers SET password = ? WHERE id = ?";
-        $update_password_stmt = $db->$conn->prepare($update_password_sql);
-        $update_password_stmt->bind_param("si", $new_hashed_password, $teacher_id);
-
-        if ($update_password_stmt->execute()) {
-            $success_msg = "Password changed successfully!";
+        if (!password_verify($current_password, $hashed_password)) {
+            $error_msg = "Current password is incorrect!";
+        } elseif ($new_password !== $confirm_password) {
+            $error_msg = "New passwords do not match!";
         } else {
-            $error_msg = "Error changing password!";
+            $new_hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
+            $update_password_sql = "UPDATE teachers SET password = ? WHERE id = ?";
+            $update_password_stmt = $db->prepare($update_password_sql); // Corrected line
+            $update_password_stmt->bindParam(1, $new_hashed_password, PDO::PARAM_STR); // Use PDO::bindParam
+            $update_password_stmt->bindParam(2, $teacher_id, PDO::PARAM_INT); // Use PDO::bindParam
+
+            if ($update_password_stmt->execute()) {
+                $success_msg = "Password changed successfully!";
+            } else {
+                $error_msg = "Error changing password!";
+            }
         }
     }
-}
-
-
 ?>
         <div class="max-w-2xl mx-auto bg-white p-6 shadow-lg rounded-lg flex gap-6" >
             <div>
