@@ -25,105 +25,82 @@ class Timetable
     }
 
     public function generateTimetable()
-    {
-        // Fetch all necessary data
-        $query = "
-            SELECT c.id AS combination_id, s.id AS subject_id, t.id AS teacher_id, cl.id AS classroom_id, 
-                   s.type AS subject_type, s.min_classes_per_week, t.min_class_hours_week, t.min_lab_hours_week
-            FROM combinations c
-            JOIN subjects s ON s.combination_id = c.id
-            JOIN teacher_subjects ts ON ts.subject_id = s.id
-            JOIN teachers t ON ts.teacher_id = t.id
-            JOIN classrooms cl ON cl.type = s.type
-            ORDER BY c.id, s.type";
+{
+    // Fetch all necessary data, including subject duration
+    $query = "
+        SELECT c.id AS combination_id, s.id AS subject_id, t.id AS teacher_id, cl.id AS classroom_id,
+               s.type AS subject_type, s.min_classes_per_week, t.min_class_hours_week, t.min_lab_hours_week, s.duration
+        FROM combinations c
+        JOIN subjects s ON s.combination_id = c.id
+        JOIN teacher_subjects ts ON ts.subject_id = s.id
+        JOIN teachers t ON ts.teacher_id = t.id
+        JOIN classrooms cl ON cl.type = s.type
+        ORDER BY c.id, s.type";
 
-        $stmt = $this->conn->prepare($query);
-        $stmt->execute();
-        $all_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $stmt = $this->conn->prepare($query);
+    $stmt->execute();
+    $all_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Define days and time slots
-        $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        $theory_time_slots = ['09:00:00', '10:00:00', '11:00:00', '12:00:00', '02:00:00', '03:00:00','04:00:00']; // 1-hour slots for theory classes
-        $lab_time_slots = ['09:00:00','02:00:00']; // Labs are 3-hour sessions, so only one slot is needed
+    // Define days and time slots (1-hour slots for simplicity and flexibility)
+    $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    $time_slots = ['09:00:00', '10:00:00', '11:00:00', '12:00:00', '14:00:00', '15:00:00', '16:00:00'];
 
-        // Initialize data structures
-        $schedule = []; // To store the final timetable
-        $teacher_load = []; // To track teacher workload
-        $classroom_availability = []; // To track classroom availability
-        $subject_assignment_count = []; // To track how many times a subject has been assigned
+    // Initialize data structures
+    $schedule = []; // To store the final timetable
+    $teacher_availability = []; // [teacher_id][day][time_slot] = true if busy
+    $classroom_availability = []; // [classroom_id][day][time_slot] = true if occupied
+    $combination_availability = []; // [combination_id][day][time_slot] = true if has a class
+    $subject_assignment_count = []; // To track how many times a subject has been assigned
 
-        // Initialize counters
-        foreach ($all_data as $row) {
-            $teacher_load[$row['teacher_id']] = 0;
-            $subject_assignment_count[$row['subject_id']] = 0;
+    // Initialize counters
+    foreach ($all_data as $row) {
+        $subject_assignment_count[$row['subject_id']] = 0;
+    }
+
+    // Shuffle the data to assign classes randomly
+    shuffle($all_data);
+
+    // Generate timetable
+    foreach ($all_data as $row) {
+        $combination_id = $row['combination_id'];
+        $subject_id = $row['subject_id'];
+        $teacher_id = $row['teacher_id'];
+        $classroom_id = $row['classroom_id'];
+        $subject_type = $row['subject_type'];
+        $min_classes_per_week = $row['min_classes_per_week'];
+        $duration = $row['duration'];
+
+        // Skip if the subject has already been assigned the required number of times
+        if ($subject_assignment_count[$subject_id] >= $min_classes_per_week) {
+            continue;
         }
 
-        // Shuffle the data to assign classes randomly
-        shuffle($all_data);
+        // Shuffle days and time slots
+        shuffle($days);
+        shuffle($time_slots);
 
-        // Generate timetable
-        foreach ($all_data as $row) {
-            $combination_id = $row['combination_id'];
-            $subject_id = $row['subject_id'];
-            $teacher_id = $row['teacher_id'];
-            $classroom_id = $row['classroom_id'];
-            $subject_type = $row['subject_type'];
-            $min_classes_per_week = $row['min_classes_per_week'];
+        foreach ($days as $day) {
+            foreach ($time_slots as $start_time_slot) {
+                $is_available = true;
+                $end_time_slot = date("H:i:s", strtotime($start_time_slot) + ($duration * 3600));
+                $current_time = $start_time_slot;
 
-            // Skip if the subject has already been assigned the required number of times
-            if ($subject_assignment_count[$subject_id] >= $min_classes_per_week) {
-                continue;
-            }
+                // Check availability for the entire duration
+                for ($i = 0; $i < $duration; $i++) {
+                    $check_slot = date("H:i:s", strtotime($start_time_slot) + ($i * 3600));
 
-            // Determine time slots based on subject type
-            $time_slots = ($subject_type === 'theory') ? $theory_time_slots : $lab_time_slots;
-
-            // Shuffle days and time slots to assign classes randomly
-            shuffle($days);
-            shuffle($time_slots);
-
-            foreach ($days as $day) {
-                foreach ($time_slots as $slot) {
-                    // Check if the teacher is available
-                    if (isset($schedule[$day][$slot]['teacher'][$teacher_id])) {
-                        continue; // Teacher is already assigned to another class at this time
+                    if (isset($teacher_availability[$teacher_id][$day][$check_slot]) ||
+                        isset($classroom_availability[$classroom_id][$day][$check_slot]) ||
+                        isset($combination_availability[$combination_id][$day][$check_slot])) {
+                        $is_available = false;
+                        break;
                     }
+                }
 
-                    // Check if the classroom is available
-                    if (isset($schedule[$day][$slot]['classroom'][$classroom_id])) {
-                        continue; // Classroom is already occupied at this time
-                    }
-
-                    // Check if the combination is already assigned at this time
-                    if (isset($schedule[$day][$slot]['combination'][$combination_id])) {
-                        continue; // Combination already has a class at this time
-                    }
-
-                    // For labs, ensure no other classes are scheduled during the 3-hour session
-                    if ($subject_type === 'lab') {
-                        $lab_end_time = date("H:i:s", strtotime($slot) + 10800); // 3 hours later
-                        $is_lab_slot_available = true;
-
-                        for ($t = strtotime($slot); $t < strtotime($lab_end_time); $t += 3600) {
-                            $current_slot = date("H:i:s", $t);
-                            if (isset($schedule[$day][$current_slot]['classroom'][$classroom_id])) {
-                                $is_lab_slot_available = false;
-                                break;
-                            }
-                        }
-
-                        if (!$is_lab_slot_available) {
-                            continue; // Lab slot is not available
-                        }
-                    }
-
+                if ($is_available) {
                     // Assign the class
-                    $start_time = $slot;
-                    $end_time = ($subject_type === 'theory') ? date("H:i:s", strtotime($slot) + 3600) : date("H:i:s", strtotime($slot) + 10800);
-
-
                     $insertQuery = "
-                        INSERT INTO timetable (combination_id, subject_id, teacher_id, classroom_id, day, start_time, end_time) 
+                        INSERT INTO timetable (combination_id, subject_id, teacher_id, classroom_id, day, start_time, end_time)
                         VALUES (:combination_id, :subject_id, :teacher_id, :classroom_id, :day, :start_time, :end_time)";
 
                     $stmtInsert = $this->conn->prepare($insertQuery);
@@ -133,32 +110,28 @@ class Timetable
                         ':teacher_id' => $teacher_id,
                         ':classroom_id' => $classroom_id,
                         ':day' => $day,
-                        ':start_time' => $start_time,
-                        ':end_time' => $end_time
+                        ':start_time' => $start_time_slot,
+                        ':end_time' => $end_time_slot
                     ]);
 
-                    // Update counters
-                    $teacher_load[$teacher_id]++;
-                    $subject_assignment_count[$subject_id]++;
-                    $schedule[$day][$slot]['teacher'][$teacher_id] = true;
-                    $schedule[$day][$slot]['classroom'][$classroom_id] = true;
-                    $schedule[$day][$slot]['combination'][$combination_id] = true;
-
-                    // For labs, mark the entire 3-hour slot as occupied
-                    if ($subject_type === 'lab') {
-                        for ($t = strtotime($slot); $t < strtotime($lab_end_time); $t += 3600) {
-                            $current_slot = date("H:i:s", $t);
-                            $schedule[$day][$current_slot]['classroom'][$classroom_id] = true;
-                        }
+                    // Mark the time slots as occupied for the duration
+                    for ($i = 0; $i < $duration; $i++) {
+                        $occupied_slot = date("H:i:s", strtotime($start_time_slot) + ($i * 3600));
+                        $teacher_availability[$teacher_id][$day][$occupied_slot] = true;
+                        $classroom_availability[$classroom_id][$day][$occupied_slot] = true;
+                        $combination_availability[$combination_id][$day][$occupied_slot] = true;
                     }
 
-                    break 2; // Move to the next subject after assignment
+                    // Update subject assignment count
+                    $subject_assignment_count[$subject_id]++;
+                    break 2; // Move to the next subject
                 }
             }
         }
-
-        return true;
     }
+
+    return true;
+}
 
     // ✅ Edit Timetable Entry
     public function addTimetableEntry($day, $time, $islab, $combination_id, $subject_id, $teacher_id, $classroom_id)

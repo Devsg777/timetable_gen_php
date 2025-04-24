@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 15, 2025 at 06:14 AM
+-- Generation Time: Apr 24, 2025 at 06:48 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -58,12 +58,22 @@ CREATE TABLE `classrooms` (
 --
 
 INSERT INTO `classrooms` (`id`, `room_no`, `type`) VALUES
-(1, 'Digital LA', 'lab'),
+(1, 'Lab-4', 'lab'),
 (2, '2', 'theory'),
 (3, '5', 'theory'),
 (6, '4', 'theory'),
 (7, '3', 'theory'),
-(8, '44', 'lab');
+(8, 'Lab-3', 'lab'),
+(9, 'C-Lab 1', 'lab'),
+(10, 'C-Lab-2', 'lab'),
+(11, '7', 'theory'),
+(12, '10', 'theory'),
+(13, '11', 'theory'),
+(14, '1', 'theory'),
+(15, '6', 'theory'),
+(16, '12', 'theory'),
+(17, '8', 'theory'),
+(18, '9', 'theory');
 
 -- --------------------------------------------------------
 
@@ -183,6 +193,7 @@ CREATE TABLE `subjects` (
   `name` varchar(100) NOT NULL,
   `min_classes_per_week` int(11) NOT NULL,
   `type` enum('theory','lab') NOT NULL,
+  `duration` int(11) UNSIGNED DEFAULT NULL,
   `combination_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -190,29 +201,29 @@ CREATE TABLE `subjects` (
 -- Dumping data for table `subjects`
 --
 
-INSERT INTO `subjects` (`id`, `name`, `min_classes_per_week`, `type`, `combination_id`) VALUES
-(12, 'DBMS', 3, 'theory', 9),
-(13, 'Operating System', 3, 'theory', 9),
-(14, 'Mathematics', 3, 'theory', 9),
-(15, 'Biology', 3, 'theory', 19),
-(16, 'Zoology', 3, 'theory', 19),
-(17, 'Botany', 3, 'theory', 19),
-(18, 'History', 3, 'theory', 19),
-(19, 'Economics', 3, 'theory', 19),
-(20, 'Sociology', 3, 'theory', 19),
-(21, 'Political Science', 3, 'theory', 41),
-(22, 'Economics', 3, 'theory', 41),
-(23, 'Statistics', 3, 'theory', 41),
-(24, 'Accountancy Lab', 4, 'lab', 41),
-(25, 'Financial Management', 4, 'theory', 41),
-(26, 'Business Law', 4, 'theory', 41),
-(28, 'History', 4, 'theory', 41),
-(29, 'PHP Lab', 2, 'lab', 9),
-(30, 'Java Programming Lab', 2, 'lab', 9),
-(31, 'Botany Lab', 2, 'lab', 19),
-(32, 'Web Technology', 4, 'theory', 9),
-(33, 'Java Theory', 3, 'theory', 9),
-(34, 'PHP Theory', 4, 'theory', 9);
+INSERT INTO `subjects` (`id`, `name`, `min_classes_per_week`, `type`, `duration`, `combination_id`) VALUES
+(12, 'DBMS', 3, 'theory', 1, 9),
+(13, 'Operating System', 3, 'theory', 1, 9),
+(14, 'Mathematics', 3, 'theory', 1, 9),
+(15, 'Biology', 3, 'theory', 1, 19),
+(16, 'Zoology', 3, 'theory', 1, 19),
+(17, 'Botany', 3, 'theory', 1, 19),
+(18, 'History', 3, 'theory', 1, 19),
+(19, 'Economics', 3, 'theory', 1, 19),
+(20, 'Sociology', 3, 'theory', 1, 41),
+(21, 'Political Science', 3, 'theory', 1, 41),
+(22, 'Economics', 3, 'theory', 1, 41),
+(23, 'Statistics', 3, 'theory', 1, 41),
+(24, 'Accountancy Lab', 4, 'lab', 1, 41),
+(25, 'Financial Management', 4, 'theory', 1, 41),
+(26, 'Business Law', 4, 'theory', 1, 41),
+(28, 'History', 4, 'theory', 1, 41),
+(29, 'PHP Lab', 2, 'lab', 4, 9),
+(30, 'Java Programming Lab', 2, 'lab', 4, 9),
+(31, 'Botany Lab', 2, 'lab', 4, 19),
+(32, 'Web Technology', 4, 'theory', 1, 9),
+(33, 'Java Theory', 3, 'theory', 1, 9),
+(34, 'PHP Theory', 4, 'theory', 1, 9);
 
 -- --------------------------------------------------------
 
@@ -241,10 +252,10 @@ INSERT INTO `teachers` (`id`, `name`, `department`, `email`, `password`, `phone_
 (4, 'Prof. Aditi', 'BSc', 'aditi@college.com', 'password', '9876543211', 'Mysore', 6, 2),
 (5, 'Dr. Sameer', 'Physics', 'sameer@college.com', 'password', '9876543212', 'Hubli', 6, 2),
 (6, 'Prof. Madan Lal', 'Chemistry', 'madanalal@gmail.com', '$2y$10$xtpbm1d3KDGHWw7Z9MDqz.D5cAVYC/Rqa7gckp2P3aFRa1DGxBFfm', '1234567890', 'No.74 17th main  sahukar chanaiyah road Saraswathipuram mysore\r\nMysore', 4, 2),
-(7, 'Pro. Prashant Neel', 'Commerce', 'prashant@gmail.com', '$2y$10$JJ9onm75bI6TRIS0zQwVXuNU2k7vnbav1odBBTI3dH0cqe768sZha', '1234567890', 'Arakalagud Hassan', 4, 0),
-(8, 'Dr. Sudha Shetty ', 'BCA', 'sudha@gmail.com', '$2y$10$cfmbZ1U5cg4QRKZ3Zv6YieRk.R1yzbfUeADvh/TI9QAVgfEB4veHu', '9383734345', 'Bengaluru', 5, 1),
-(9, 'Mis. Prakruthi ', 'Commerce', 'prakruthi@gmail.com', '$2y$10$ThTNS4v6bz/gz7FrgYrNn.ostjSsI.jXa3PCcBRibuump4v3TRB2G', '9876378374', 'Hassan, Karnataka', 6, 0),
-(10, 'Prof. Suchitra ', 'Commerce', 'suchitra@gmail.com', '$2y$10$0Qkzo4ce7zR98bu2YJnrgedeffsNkrlqS2k1oem8jr/srn5za0afG', '9876378374', 'Hassan', 4, 1);
+(7, 'Pro. Prashant Neel', 'Commerce', 'prashant@gmail.com', '$2y$10$JJ9onm75bI6TRIS0zQwVXuNU2k7vnbav1odBBTI3dH0cqe768sZha', '1234567890', 'Arakalagud Hassan', 6, 0),
+(8, 'Dr. Sudha Shetty ', 'BCA', 'sudha@gmail.com', '$2y$10$cfmbZ1U5cg4QRKZ3Zv6YieRk.R1yzbfUeADvh/TI9QAVgfEB4veHu', '9383734345', 'Bengaluru', 10, 1),
+(9, 'Mis. Prakruthi ', 'Commerce', 'prakruthi@gmail.com', '$2y$10$ThTNS4v6bz/gz7FrgYrNn.ostjSsI.jXa3PCcBRibuump4v3TRB2G', '9876378374', 'Hassan, Karnataka', 8, 2),
+(10, 'Prof. Suchitra ', 'Commerce', 'suchitra@gmail.com', '$2y$10$0Qkzo4ce7zR98bu2YJnrgedeffsNkrlqS2k1oem8jr/srn5za0afG', '9876378374', 'Hassan', 10, 2);
 
 -- --------------------------------------------------------
 
@@ -297,39 +308,41 @@ CREATE TABLE `timetable` (
 --
 
 INSERT INTO `timetable` (`id`, `subject_id`, `teacher_id`, `classroom_id`, `day`, `start_time`, `end_time`, `combination_id`) VALUES
-(1463, 29, 4, 8, 'Tuesday', '02:00:00', '05:00:00', 9),
-(1464, 29, 4, 1, 'Friday', '10:00:00', '13:00:00', 9),
-(1465, 30, 10, 1, 'Saturday', '10:00:00', '13:00:00', 9),
-(1466, 28, 7, 3, 'Monday', '10:00:00', '11:00:00', 41),
-(1467, 26, 5, 7, 'Wednesday', '04:00:00', '05:00:00', 41),
-(1468, 12, 6, 2, 'Friday', '04:00:00', '05:00:00', 9),
-(1469, 13, 3, 2, 'Tuesday', '04:00:00', '05:00:00', 9),
-(1470, 33, 10, 3, 'Wednesday', '11:00:00', '12:00:00', 9),
-(1471, 12, 6, 6, 'Thursday', '04:00:00', '05:00:00', 9),
-(1472, 26, 5, 2, 'Monday', '12:00:00', '13:00:00', 41),
-(1473, 23, 9, 3, 'Thursday', '10:00:00', '11:00:00', 41),
-(1474, 22, 8, 7, 'Tuesday', '12:00:00', '13:00:00', 41),
-(1475, 30, 10, 8, 'Tuesday', '10:00:00', '13:00:00', 9),
-(1476, 12, 6, 7, 'Saturday', '03:00:00', '04:00:00', 9),
-(1477, 33, 10, 6, 'Tuesday', '12:00:00', '13:00:00', 9),
-(1478, 13, 3, 7, 'Wednesday', '12:00:00', '13:00:00', 9),
-(1479, 28, 7, 7, 'Monday', '02:00:00', '03:00:00', 41),
-(1480, 23, 9, 7, 'Tuesday', '03:00:00', '04:00:00', 41),
-(1481, 24, 9, 8, 'Thursday', '02:00:00', '05:00:00', 41),
-(1482, 34, 4, 3, 'Monday', '04:00:00', '05:00:00', 9),
-(1483, 22, 8, 2, 'Thursday', '12:00:00', '13:00:00', 41),
-(1484, 26, 5, 3, 'Wednesday', '02:00:00', '03:00:00', 41),
-(1485, 23, 9, 2, 'Friday', '10:00:00', '11:00:00', 41),
-(1486, 34, 4, 7, 'Wednesday', '10:00:00', '11:00:00', 9),
-(1487, 33, 10, 7, 'Tuesday', '11:00:00', '12:00:00', 9),
-(1488, 26, 5, 6, 'Thursday', '11:00:00', '12:00:00', 41),
-(1489, 28, 7, 6, 'Thursday', '03:00:00', '04:00:00', 41),
-(1490, 24, 9, 1, 'Tuesday', '02:00:00', '05:00:00', 41),
-(1491, 22, 8, 6, 'Wednesday', '10:00:00', '11:00:00', 41),
-(1492, 13, 3, 6, 'Tuesday', '03:00:00', '04:00:00', 9),
-(1493, 34, 4, 6, 'Monday', '02:00:00', '03:00:00', 9),
-(1494, 34, 4, 2, 'Saturday', '04:00:00', '05:00:00', 9),
-(1495, 28, 7, 2, 'Saturday', '10:00:00', '11:00:00', 41);
+(1770, 26, 5, 6, 'Friday', '15:00:00', '16:00:00', 41),
+(1771, 29, 4, 1, 'Thursday', '11:00:00', '15:00:00', 9),
+(1772, 26, 5, 14, 'Tuesday', '09:00:00', '10:00:00', 41),
+(1773, 34, 4, 2, 'Wednesday', '15:00:00', '16:00:00', 9),
+(1774, 34, 4, 12, 'Tuesday', '10:00:00', '11:00:00', 9),
+(1775, 29, 4, 10, 'Friday', '16:00:00', '20:00:00', 9),
+(1776, 23, 9, 16, 'Friday', '14:00:00', '15:00:00', 41),
+(1777, 23, 9, 15, 'Saturday', '11:00:00', '12:00:00', 41),
+(1778, 23, 9, 17, 'Wednesday', '16:00:00', '17:00:00', 41),
+(1779, 12, 6, 3, 'Tuesday', '16:00:00', '17:00:00', 9),
+(1780, 26, 5, 3, 'Thursday', '15:00:00', '16:00:00', 41),
+(1781, 24, 9, 8, 'Monday', '12:00:00', '13:00:00', 41),
+(1782, 13, 3, 18, 'Saturday', '15:00:00', '16:00:00', 9),
+(1783, 12, 6, 12, 'Monday', '16:00:00', '17:00:00', 9),
+(1784, 28, 7, 15, 'Saturday', '15:00:00', '16:00:00', 41),
+(1785, 33, 10, 17, 'Wednesday', '10:00:00', '11:00:00', 9),
+(1786, 28, 7, 11, 'Monday', '10:00:00', '11:00:00', 41),
+(1787, 22, 8, 7, 'Monday', '14:00:00', '15:00:00', 41),
+(1788, 22, 8, 6, 'Tuesday', '14:00:00', '15:00:00', 41),
+(1789, 12, 6, 2, 'Wednesday', '12:00:00', '13:00:00', 9),
+(1790, 30, 10, 9, 'Saturday', '11:00:00', '15:00:00', 9),
+(1791, 24, 9, 9, 'Monday', '11:00:00', '12:00:00', 41),
+(1792, 13, 3, 3, 'Friday', '12:00:00', '13:00:00', 9),
+(1793, 24, 9, 1, 'Wednesday', '14:00:00', '15:00:00', 41),
+(1794, 28, 7, 6, 'Friday', '11:00:00', '12:00:00', 41),
+(1795, 22, 8, 17, 'Monday', '16:00:00', '17:00:00', 41),
+(1796, 34, 4, 6, 'Wednesday', '09:00:00', '10:00:00', 9),
+(1797, 34, 4, 17, 'Wednesday', '14:00:00', '15:00:00', 9),
+(1798, 33, 10, 18, 'Wednesday', '11:00:00', '12:00:00', 9),
+(1799, 13, 3, 17, 'Friday', '10:00:00', '11:00:00', 9),
+(1800, 26, 5, 18, 'Monday', '09:00:00', '10:00:00', 41),
+(1801, 28, 7, 18, 'Tuesday', '15:00:00', '16:00:00', 41),
+(1802, 33, 10, 12, 'Thursday', '09:00:00', '10:00:00', 9),
+(1803, 30, 10, 8, 'Wednesday', '16:00:00', '20:00:00', 9),
+(1804, 24, 9, 10, 'Monday', '15:00:00', '16:00:00', 41);
 
 --
 -- Indexes for dumped tables
@@ -424,7 +437,7 @@ ALTER TABLE `admins`
 -- AUTO_INCREMENT for table `classrooms`
 --
 ALTER TABLE `classrooms`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `combinations`
@@ -472,7 +485,7 @@ ALTER TABLE `teacher_subjects`
 -- AUTO_INCREMENT for table `timetable`
 --
 ALTER TABLE `timetable`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1496;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1805;
 
 --
 -- Constraints for dumped tables
