@@ -49,6 +49,12 @@ if (!$combo) {
                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
             </div>
 
+            <div>
+                <label class="block text-gray-700 font-semibold">No of Sections</label>
+                <input type="number" name="sections" value="<?= htmlspecialchars($combo['sections']); ?>" 
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
+            </div>
+
             <button type="submit" name='edit'
                     class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition">
                 Update Combination

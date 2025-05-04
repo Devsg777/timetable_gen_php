@@ -37,6 +37,7 @@ $combinations = $combination->getCombinations();
                     <th class="p-3 text-left">Name</th>
                     <th class="p-3 text-left">Department</th>
                     <th class="p-3 text-left">Semester</th>
+                    <th class="p-3 text-left">Section</th>
                     <th class="p-3 text-left">Actions</th>
                 </tr>
             </thead>
@@ -48,6 +49,7 @@ $combinations = $combination->getCombinations();
                             <td class="p-3"><?= htmlspecialchars($combination['name']) ?></td>
                             <td class="p-3"><?= htmlspecialchars($combination['department']) ?></td>
                             <td class="p-3"><?= htmlspecialchars($combination['semester']) ?></td>
+                            <td class="p-3"><?= htmlspecialchars($combination['sections'])?></td>
                             <td class="p-3">
                                 <a href="edit_combination.php?id=<?= $combination['id'] ?>" 
                                    class="text-blue-500 hover:underline">Edit</a> |

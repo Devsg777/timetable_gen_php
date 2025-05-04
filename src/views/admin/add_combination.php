@@ -10,6 +10,10 @@
 
         <label class="block mt-2">Semester:</label>
         <input type="number" name="semester" required class="w-full p-2 border rounded">
+        
+        <label class="block mt-2">No Sections:</label>
+        <input type="number" name="sections" required class="w-full p-2 border rounded">
+
 
         <button type="submit" name="add" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Add</button>
     </form>

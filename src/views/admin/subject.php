@@ -16,6 +16,7 @@ $db = $database->getConnection();
 $subject = new Subject($db);
 $subjects = $subject->getAllSubjects();
 
+
 ?>
 <?php include_once(__DIR__ . '/header.php'); ?>
     <div class="max-w-4xl mx-auto bg-white p-6 rounded shadow-lg">

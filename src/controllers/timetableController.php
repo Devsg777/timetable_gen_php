@@ -80,5 +80,3 @@ if (isset($_GET['swap'])) {
     exit();
 }
 ?>
-
-

@@ -8,12 +8,26 @@ class Combination {
         $this->conn = $db;
     }
 
-    public function addCombination($name, $department, $semester) {
-        $query = "INSERT INTO combinations (name, department, semester) VALUES (:name, :department, :semester)";
+    public function addCombination($name, $department, $semester, $section) {
+
+        // Check if the combination and section already exists
+        $checkQuery = "SELECT * FROM combinations WHERE name = :name AND department = :department AND semester = :semester ";
+        $checkStmt = $this->conn->prepare($checkQuery);
+        $checkStmt->bindParam(":name", $name);
+        $checkStmt->bindParam(":department", $department);
+        $checkStmt->bindParam(":semester", $semester);
+        $checkStmt->execute();
+
+        if ($checkStmt->rowCount() > 0) {
+            return false; // Combination already exists
+        }
+        // If not, proceed to insert
+        $query = "INSERT INTO combinations (name, department, semester,sections) VALUES (:name, :department, :semester, :section)";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(":name", $name);
         $stmt->bindParam(":department", $department);
         $stmt->bindParam(":semester", $semester);
+        $stmt->bindParam(":section", $section);
         return $stmt->execute();
     }
 
@@ -26,12 +40,16 @@ class Combination {
 
    
 
-    public function updateCombination($id, $name, $department, $semester) {
-        $query = "UPDATE combinations SET name = :name, department = :department, semester = :semester WHERE id = :id";
+    public function updateCombination($id, $name, $department, $semester, $section) {
+        // Check if the combination and section already exists
+
+        // If not, proceed to update
+        $query = "UPDATE combinations SET name = :name, department = :department, semester = :semester, sections = :section WHERE id = :id";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(":name", $name);
         $stmt->bindParam(":department", $department);
         $stmt->bindParam(":semester", $semester);
+        $stmt->bindParam(":section", $section);
         $stmt->bindParam(":id", $id);
         return $stmt->execute();
     }

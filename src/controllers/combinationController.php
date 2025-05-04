@@ -17,8 +17,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add'])) {
     $name = $_POST['name'];
     $department = $_POST['department'];
     $semester = $_POST['semester'];
+
+
+    //convert No of sections into array of Aphalbets
+  
+    if ($_POST['sections'] <= 0 || $_POST['sections'] > 26) {
+        $section = json_encode(["A"]);
+    }else{
+
+    $alphabet = range('A', 'Z');
+    $section = json_encode(array_slice($alphabet, 0, $_POST['sections']));
+    }
+     
     
-    if ($combination->addCombination($name, $department, $semester)) {
+    if ($combination->addCombination($name, $department, $semester,$section)) {
         header("Location: ../views/admin/combinations.php?success=Combination added successfully");
         exit();
     } else {
@@ -33,8 +45,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit'])) {
     $name = $_POST['name'];
     $department = $_POST['department'];
     $semester = $_POST['semester'];
+    if ($_POST['sections'] <= 0 || $_POST['sections'] > 26) {
+        $section = json_encode(["A"]);
+    }else{
 
-    if ($combination->updateCombination($id, $name, $department, $semester)) {
+    $alphabet = range('A', 'Z');
+    $section = json_encode(array_slice($alphabet, 0, $_POST['sections']));
+    }
+
+    if ($combination->updateCombination($id, $name, $department, $semester, $section)) {
         header("Location: ../views/admin/combinations.php?success=Combination updated successfully");
         exit();
     } else {

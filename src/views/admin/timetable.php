@@ -28,7 +28,7 @@ $subjects =  $subject->getAllSubjects();
 $teachers = $teacher->getTeachers();
 $classrooms = $classroom->getAllClassrooms();
 
-$time_slots = ['09:00 - 10:00', '10:00 - 11:00', '11:00 - 12:00', '12:00 - 01:00', '01:00 - 02:00', '02:00 - 03:00', '03:00 - 04:00', '04:00 - 05:00'];
+$time_slots = ['09:00 - 10:00', '10:00 - 11:00', '11:00 - 12:00', '12:00 - 13:00', '01:00 - 02:00', '02:00 - 03:00', '03:00 - 04:00', '04:00 - 05:00', '05:00 - 06:00'];
 $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 ?>
 
@@ -84,12 +84,14 @@ $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         </div>
 
         <?php foreach ($combinations as $combination) : ?>
+            <!-- Timetable for each combination section-->
+            <?php foreach (json_decode($combination["sections"]) as $section) : ?>
             <div class="max-w-7xl mx-auto bg-white p-2 rounded-lg shadow-md mb-3">
                 <h2 class="text-xl font-bold mb-4 text-center">
-                    <?= htmlspecialchars($combination['name']) . " ( Semester " . htmlspecialchars($combination['semester']) . " - " . htmlspecialchars($combination['department']) . " )"; ?>
+                    <?= htmlspecialchars($combination['name']) . " ( Semester " . htmlspecialchars($combination['semester']) . " - " . htmlspecialchars($combination['department']) . " )".htmlspecialchars($section)." Section"; ?>
                 </h2>
                 <pre>
-                <?php $data = $timetable->getTimetableByCombination($combination['combination_id']); ?>
+                <?php $data = $timetable->getTimetableByCombination($combination['combination_id'],$section); ?>
                 </pre>
                 <table class="w-full border-collapse border border-gray-300">
                     <thead>
@@ -103,23 +105,51 @@ $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
                     <tbody>
                         <?php foreach ($days as $index => $day) : ?>
                             <tr>
+                                <!-- Day Column -->
                                 <td class="border border-gray-300 p-2 bg-gray-100 font-bold"><?= htmlspecialchars($day); ?></td>
 
-                                <?php foreach ($time_slots as $slot) : ?>
-                                    <?php if ($slot === '01:00 - 02:00') : ?>
-                                        <?php if ($index === 0): // Only render lunch cell on first row 
-                                        ?>
-                                            <td class="border border-gray-300 p-2 text-center bg-yellow-100 font-semibold text-yellow-700" rowspan="<?= count($days) ?>">
-                                                🍽️ Lunch Break
-                                            </td>
-                                        <?php endif; ?>
-                                        <?php continue; // Skip the lunch slot for all rows 
-                                        ?>
-                                    <?php endif; ?>
+                                <?php
+                                $slotCount = count($time_slots);
+                                $slotIndex = 0;
 
-                                    <?php if (isset($data[$day][$slot])) :
-                                        $entry = $data[$day][$slot]; ?>
-                                        <td class="border border-gray-300 p-2 text-sm text-center">
+                                // Loop through all time slots for the day
+                                while ($slotIndex < $slotCount) :
+                                    $slot = $time_slots[$slotIndex];
+
+                                    // If it's the lunch break time slot (01:00 - 02:00), show lunch break text in the cell
+                                    if ($slot === '01:00 - 02:00') {
+                                ?>
+                                        <td class="border border-gray-300 p-2 text-center bg-yellow-100 font-semibold text-yellow-700">
+                                            🍽️ Lunch Break
+                                        </td>
+                                    <?php
+                                        $slotIndex++; // Move to next slot after the lunch break
+                                        continue;
+                                    }
+
+                                    // Check if there's data for this time slot
+                                    if (isset($data[$day][$slot])) {
+                                        $entry = $data[$day][$slot];
+
+                                        // Count consecutive slots that belong to the same entry (for labs)
+                                        $colspan = 1;
+                                        for ($j = $slotIndex + 1; $j < $slotCount; $j++) {
+                                            $nextSlot = $time_slots[$j];
+
+                                            // If the next time slot belongs to the same entry, increment colspan
+                                            if (isset($data[$day][$nextSlot]) && $data[$day][$nextSlot]['entry_id'] === $entry['entry_id']) {
+                                                $colspan++;
+                                            } else {
+                                                break;
+                                            }
+                                        }
+
+                                        // Detect lab sessions (either by colspan or by subject)
+                                        $isLab = $colspan >= 2 || stripos($entry['subject'], 'lab') !== false;
+
+                                        // Output table cell for this slot
+                                    ?>
+                                        <td class="border border-gray-300 p-2 text-sm text-center <?= $isLab ? 'bg-blue-100' : '' ?>" colspan="<?= $colspan ?>">
                                             <b><?= htmlspecialchars($entry['subject']); ?></b><br>
                                             <span class="text-gray-600">Teacher: <?= htmlspecialchars($entry['teacher']); ?></span><br>
                                             <span class="text-gray-500">Room: <?= htmlspecialchars($entry['classroom']); ?></span><br>
@@ -133,7 +163,12 @@ $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
                                                 <i class="fa fa-exchange text-purple-400" aria-hidden="true"></i>
                                             </button>
                                         </td>
-                                    <?php else : ?>
+                                    <?php
+                                        // Skip over the slots merged as part of the same lab session
+                                        $slotIndex += $colspan;
+                                    } else {
+                                        // No entry, show empty cell with add and swap buttons
+                                    ?>
                                         <td class="border border-gray-300 p-2 text-center text-gray-400">
                                             <button onclick="openAddModal('<?= htmlspecialchars($day); ?>', '<?= htmlspecialchars($slot); ?>','<?= htmlspecialchars($combination['combination_id']) ?>','<?= htmlspecialchars($combination['name']) ?>','<?= htmlspecialchars($combination['semester']) ?>')">
                                                 <i class="fa fa-plus text-black text-sm" aria-hidden="true"></i>
@@ -143,13 +178,19 @@ $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
                                                 <i class="fa fa-exchange text-purple-400 text-sm" aria-hidden="true"></i>
                                             </button>
                                         </td>
-                                    <?php endif; ?>
-                                <?php endforeach; ?>
+                                <?php
+                                        $slotIndex++;
+                                    }
+                                endwhile;
+                                ?>
                             </tr>
                         <?php endforeach; ?>
+                    </tbody>
+
 
                 </table>
             </div>
+            <?php endforeach; ?>
         <?php endforeach; ?>
 
         <!-- Master Timetable -->
