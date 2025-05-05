@@ -10,185 +10,243 @@ class Timetable
     }
 
     // ✅ Get full timetable
-    public function getAllTimetables()
-    {
-        $query = "SELECT tt.id, c.name AS combination, s.name AS subject, t.name AS teacher, cl.room_no, tt.day, tt.start_time, tt.end_time 
-                  FROM " . $this->table_name . " tt
-                  INNER JOIN combinations c ON tt.combination_id = c.id
-                  INNER JOIN subjects s ON tt.subject_id = s.id
-                  INNER JOIN teachers t ON tt.teacher_id = t.id
-                  INNER JOIN classrooms cl ON tt.classroom_id = cl.id
-                  ORDER BY tt.day, tt.start_time";
-        $stmt = $this->conn->prepare($query);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
+
 
     public function generateTimetable()
     {
-        // Fetch all necessary data including sections
+        // Step 1: Fetch all data
         $query = "
-            SELECT c.id AS combination_id, c.sections, s.id AS subject_id, t.id AS teacher_id, cl.id AS classroom_id,
-                   s.type AS subject_type, s.min_classes_per_week AS min_classes_per_week,
-                   t.min_class_hours_week AS teacher_min_classes, t.min_lab_hours_week AS teacher_min_labs, s.duration
+            SELECT c.id AS combination_id, c.sections, s.id AS subject_id, s.name AS subject_name, s.type AS subject_type, 
+                   s.min_classes_per_week, s.duration, t.id AS teacher_id, t.min_class_hours_week, t.min_lab_hours_week, 
+                   cl.id AS classroom_id
             FROM combinations c
             JOIN subjects s ON s.combination_id = c.id
             JOIN teacher_subjects ts ON ts.subject_id = s.id
-            JOIN teachers t ON ts.teacher_id = t.id
+            JOIN teachers t ON t.id = ts.teacher_id
             JOIN classrooms cl ON cl.type = s.type
-            ORDER BY c.id, s.type
+            ORDER BY c.id, s.id
         ";
     
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
-        $all_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-        // Define time slots
+        // Step 2: Initialize
         $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        $lab_time_blocks = [
+        $theory_slots = ['09:00:00', '10:00:00', '11:00:00', '12:00:00', '02:00:00', '03:00:00', '04:00:00', '05:00:00'];
+        $lab_blocks = [
             ['start' => '09:00:00', 'end' => '12:00:00'],
-            ['start' => '14:00:00', 'end' => '17:00:00']
+            ['start' => '02:00:00', 'end' => '05:00:00']
         ];
-        $theory_time_slots = ['09:00:00', '10:00:00', '11:00:00', '12:00:00',
-                              '14:00:00', '15:00:00', '16:00:00', '17:00:00'];
     
-        // Initialize availability trackers
-        $schedule = [];
-        $teacher_availability = [];
-        $classroom_availability = [];
-        $combination_availability = [];
-        $subject_assignment_count = [];
-        $lab_session_count = [];
+        $teacher_theory_hours = [];
+        $teacher_lab_hours = [];
+        $section_subject_schedule_count = [];
+        $teacher_avail = [];
+        $classroom_avail = [];
+        $section_avail = [];
+        $section_day_class_count = []; // New: Track max 5 theory classes per day per section
     
-        foreach ($all_data as $row) {
-            $subject_id = $row['subject_id'];
-            $subject_assignment_count[$subject_id] = 0;
-            if ($row['subject_type'] === 'lab') {
-                $lab_session_count[$subject_id] = 0;
+        $used_lab_slots = [];
+    
+        // Initialize counters
+        foreach ($data as $row) {
+            $sections = explode(',', str_replace(['[', ']', '"', '\''], '', $row['sections']));
+            foreach ($sections as $section) {
+                $section = trim($section);
+                $section_subject_schedule_count[$row['subject_id']][$section] = 0;
             }
+            $teacher_theory_hours[$row['teacher_id']] = 0;
+            $teacher_lab_hours[$row['teacher_id']] = 0;
         }
     
-        shuffle($all_data); // Randomize order
+        shuffle($data);
     
-        foreach ($all_data as $row) {
+        foreach ($data as $row) {
             $combination_id = $row['combination_id'];
             $subject_id = $row['subject_id'];
+            $subject_name = $row['subject_name'];
+            $subject_type = $row['subject_type'];
             $teacher_id = $row['teacher_id'];
             $classroom_id = $row['classroom_id'];
-            $subject_type = $row['subject_type'];
-            $min_classes_per_week = $row['min_classes_per_week'];
             $duration = $row['duration'];
-            $teacher_min_classes = $row['teacher_min_classes'];
-            $teacher_min_labs = $row['teacher_min_labs'];
+            $min_classes = $row['min_classes_per_week'];
     
-            // Parse sections (assumed as comma-separated like "A,B,C")
             $sections = explode(',', str_replace(['[', ']', '"', '\''], '', $row['sections']));
-            shuffle($days);
     
-            foreach ($sections as $section) {
-                $section = trim($section); // Remove whitespace
-    
-                if ($subject_type === 'lab') {
-                    if ($lab_session_count[$subject_id] >= $min_classes_per_week) continue;
-    
-                    foreach ($days as $day) {
-                        foreach ($lab_time_blocks as $block) {
-                            $start_time_slot = $block['start'];
-                            $end_time_slot = $block['end'];
-                            $is_available = true;
-    
-                            // Check 3-hour block availability
-                            for ($i = 0; $i < 3; $i++) {
-                                $check_slot = date("H:i:s", strtotime($start_time_slot) + ($i * 3600));
-                                if (
-                                    isset($teacher_availability[$teacher_id][$day][$check_slot]) ||
-                                    isset($classroom_availability[$classroom_id][$day][$check_slot]) ||
-                                    isset($combination_availability["$combination_id-$section"][$day][$check_slot])
-                                ) {
-                                    $is_available = false;
-                                    break;
+            if ($subject_type === 'lab') {
+                // LAB SCHEDULING FIXED BLOCK
+                $sections = array_map('trim', explode(',', str_replace(['[', ']', '"', '\''], '', $row['sections'])));
+                $lab_assigned = false;
+            
+                foreach ($days as $day) {
+                    foreach ($lab_blocks as $block) {
+                        $slot_key = "$combination_id-$day-{$block['start']}";
+                        if (isset($used_lab_slots[$slot_key])) continue;
+            
+                        $all_sections_schedulable = true;
+            
+                        // Check if this time is free for all sections (regardless of subject)
+                        foreach ($sections as $section) {
+                            for ($h = 0; $h < 3; $h++) {
+                                $t = date("H:i:s", strtotime($block['start']) + $h * 3600);
+                                if (isset($section_avail["$combination_id-$section"][$day][$t])) {
+                                    $all_sections_schedulable = false;
+                                    break 2;
                                 }
                             }
-    
-                            if ($is_available) {
-                                // Insert into timetable
-                                $stmtInsert = $this->conn->prepare("
+                        }
+            
+                        if (!$all_sections_schedulable) continue;
+            
+                        // Now for each section, try to assign one lab subject still needing slots
+                        foreach ($sections as $section) {
+                            $section = trim($section);
+            
+                            // Find a lab subject needing assignment for this section
+                            $lab_subject_query = "
+                                SELECT s.id AS subject_id, s.name AS subject_name, s.duration, s.min_classes_per_week,
+                                       ts.teacher_id, cl.id AS classroom_id
+                                FROM subjects s
+                                JOIN teacher_subjects ts ON ts.subject_id = s.id
+                                JOIN teachers t ON t.id = ts.teacher_id
+                                JOIN classrooms cl ON cl.type = 'lab'
+                                WHERE s.type = 'lab' AND s.combination_id = :comb_id
+                            ";
+                            $stmtLab = $this->conn->prepare($lab_subject_query);
+                            $stmtLab->execute([':comb_id' => $combination_id]);
+                            $lab_subjects = $stmtLab->fetchAll(PDO::FETCH_ASSOC);
+            
+                            shuffle($lab_subjects); // Randomize selection
+            
+                            foreach ($lab_subjects as $lab_sub) {
+                                $sid = $lab_sub['subject_id'];
+                                $tid = $lab_sub['teacher_id'];
+                                $clid = $lab_sub['classroom_id'];
+                                $min_lab = $lab_sub['min_classes_per_week'];
+            
+                                if (($section_subject_schedule_count[$sid][$section] ?? 0) >= $min_lab) continue;
+            
+                                // Check availability of teacher and room for 3 hours
+                                $conflict = false;
+                                for ($h = 0; $h < 3; $h++) {
+                                    $t = date("H:i:s", strtotime($block['start']) + $h * 3600);
+                                    if (
+                                        isset($teacher_avail[$tid][$day][$t]) ||
+                                        isset($classroom_avail[$clid][$day][$t])
+                                    ) {
+                                        $conflict = true;
+                                        break;
+                                    }
+                                }
+            
+                                if ($conflict) continue;
+            
+                                // Assign lab
+                                $stmtIns = $this->conn->prepare("
                                     INSERT INTO timetable (combination_id, section, subject_id, teacher_id, classroom_id, day, start_time, end_time)
                                     VALUES (:combination_id, :section, :subject_id, :teacher_id, :classroom_id, :day, :start_time, :end_time)
                                 ");
-                                $stmtInsert->execute([
+                                $stmtIns->execute([
                                     ':combination_id' => $combination_id,
                                     ':section' => $section,
-                                    ':subject_id' => $subject_id,
-                                    ':teacher_id' => $teacher_id,
-                                    ':classroom_id' => $classroom_id,
+                                    ':subject_id' => $sid,
+                                    ':teacher_id' => $tid,
+                                    ':classroom_id' => $clid,
                                     ':day' => $day,
-                                    ':start_time' => $start_time_slot,
-                                    ':end_time' => $end_time_slot
+                                    ':start_time' => $block['start'],
+                                    ':end_time' => $block['end']
                                 ]);
-    
-                                // Mark slots as occupied
-                                for ($i = 0; $i < 3; $i++) {
-                                    $occupied_slot = date("H:i:s", strtotime($start_time_slot) + ($i * 3600));
-                                    $teacher_availability[$teacher_id][$day][$occupied_slot] = true;
-                                    $classroom_availability[$classroom_id][$day][$occupied_slot] = true;
-                                    $combination_availability["$combination_id-$section"][$day][$occupied_slot] = true;
+            
+                                for ($h = 0; $h < 3; $h++) {
+                                    $t = date("H:i:s", strtotime($block['start']) + $h * 3600);
+                                    $teacher_avail[$tid][$day][$t] = true;
+                                    $classroom_avail[$clid][$day][$t] = true;
+                                    $section_avail["$combination_id-$section"][$day][$t] = true;
                                 }
-    
-                                $lab_session_count[$subject_id]++;
-                                break 2; // Go to next subject
+            
+                                $teacher_lab_hours[$tid] += 3;
+                                $section_subject_schedule_count[$sid][$section] = ($section_subject_schedule_count[$sid][$section] ?? 0) + 1;
+                                break;
                             }
                         }
+            
+                        // Mark this time block as used for the combination
+                        $used_lab_slots[$slot_key] = true;
+                        $lab_assigned = true;
+                        break 2;
                     }
-                } else {
-                    if ($subject_assignment_count[$subject_id] >= $min_classes_per_week) continue;
+                }
+            
+                continue; // move to next subject row
+            } else {
+                // Theory
+                foreach ($days as $day) {
+                    shuffle($theory_slots);
+                    foreach ($theory_slots as $start) {
+                        $end = date("H:i:s", strtotime($start) + ($duration * 3600));
+                        shuffle($sections);
+                        foreach ($sections as $section) {
+                            $section = trim($section);
+                            if ($section_subject_schedule_count[$subject_id][$section] >= $min_classes) continue;
     
-                    shuffle($theory_time_slots);
+                            if (
+                                isset($section_day_class_count["$combination_id-$section"][$day]) &&
+                                $section_day_class_count["$combination_id-$section"][$day] >= 4
+                            ) continue;
     
-                    foreach ($days as $day) {
-                        foreach ($theory_time_slots as $start_time_slot) {
-                            $is_available = true;
-                            $end_time_slot = date("H:i:s", strtotime($start_time_slot) + ($duration * 3600));
-    
-                            for ($i = 0; $i < $duration; $i++) {
-                                $check_slot = date("H:i:s", strtotime($start_time_slot) + ($i * 3600));
+                            $conflict = false;
+                            for ($d = 0; $d < $duration; $d++) {
+                                $slot = date("H:i:s", strtotime($start) + ($d * 3600));
                                 if (
-                                    isset($teacher_availability[$teacher_id][$day][$check_slot]) ||
-                                    isset($classroom_availability[$classroom_id][$day][$check_slot]) ||
-                                    isset($combination_availability["$combination_id-$section"][$day][$check_slot])
+                                    isset($teacher_avail[$teacher_id][$day][$slot]) ||
+                                    isset($classroom_avail[$classroom_id][$day][$slot]) ||
+                                    isset($section_avail["$combination_id-$section"][$day][$slot])
                                 ) {
-                                    $is_available = false;
+                                    $conflict = true;
                                     break;
                                 }
                             }
     
-                            if ($is_available) {
-                                $stmtInsert = $this->conn->prepare("
+                            if (!$conflict) {
+                                $stmtIns = $this->conn->prepare("
                                     INSERT INTO timetable (combination_id, section, subject_id, teacher_id, classroom_id, day, start_time, end_time)
                                     VALUES (:combination_id, :section, :subject_id, :teacher_id, :classroom_id, :day, :start_time, :end_time)
                                 ");
-                                $stmtInsert->execute([
+                                $stmtIns->execute([
                                     ':combination_id' => $combination_id,
                                     ':section' => $section,
                                     ':subject_id' => $subject_id,
                                     ':teacher_id' => $teacher_id,
                                     ':classroom_id' => $classroom_id,
                                     ':day' => $day,
-                                    ':start_time' => $start_time_slot,
-                                    ':end_time' => $end_time_slot
+                                    ':start_time' => $start,
+                                    ':end_time' => $end
                                 ]);
     
-                                for ($i = 0; $i < $duration; $i++) {
-                                    $occupied_slot = date("H:i:s", strtotime($start_time_slot) + ($i * 3600));
-                                    $teacher_availability[$teacher_id][$day][$occupied_slot] = true;
-                                    $classroom_availability[$classroom_id][$day][$occupied_slot] = true;
-                                    $combination_availability["$combination_id-$section"][$day][$occupied_slot] = true;
+                                for ($d = 0; $d < $duration; $d++) {
+                                    $slot = date("H:i:s", strtotime($start) + ($d * 3600));
+                                    $teacher_avail[$teacher_id][$day][$slot] = true;
+                                    $classroom_avail[$classroom_id][$day][$slot] = true;
+                                    $section_avail["$combination_id-$section"][$day][$slot] = true;
                                 }
     
-                                $subject_assignment_count[$subject_id]++;
-                                break 2; // Go to next subject
+                                $teacher_theory_hours[$teacher_id] += $duration;
+                                $section_subject_schedule_count[$subject_id][$section]++;
+                                $section_day_class_count["$combination_id-$section"][$day] = ($section_day_class_count["$combination_id-$section"][$day] ?? 0) + 1;
+                            }
+    
+                            if ($section_subject_schedule_count[$subject_id][$section] >= $min_classes) continue;
+                        }
+    
+                        $done = true;
+                        foreach ($sections as $section) {
+                            if ($section_subject_schedule_count[$subject_id][trim($section)] < $min_classes) {
+                                $done = false;
+                                break;
                             }
                         }
+                        if ($done) break;
                     }
                 }
             }
@@ -197,7 +255,6 @@ class Timetable
         return true;
     }
     
-
 
     // ✅ Edit Timetable Entry
     public function addTimetableEntry($day, $time, $islab, $combination_id, $subject_id, $teacher_id, $classroom_id)

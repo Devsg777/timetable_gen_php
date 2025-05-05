@@ -36,10 +36,12 @@ function exportExcel($combinations, $days, $time_slots, $timetable)
     $row = 1;
 
     foreach ($combinations as $combination) {
-        $data = $timetable->getTimetableByCombination($combination['combination_id']);
+        foreach (json_decode($combination["sections"]) as $section) {
+        
+        $data = $timetable->getTimetableByCombination($combination['combination_id'],$section);
 
         // Add combination name as a header
-        $sheet->setCellValue('A' . $row, $combination['name'] . " (" . $combination['department'] . " - Semester " . $combination['semester'] . ")");
+        $sheet->setCellValue('A' . $row, $combination['name'] . " (" . $combination['department'] . " - Semester " . $combination['semester'] . ") ".$section." Section");
         $sheet->mergeCells("A$row:" . chr(65 + count($time_slots)) . "$row");
         $sheet->getStyle("A$row")->getFont()->setSize(16);
         $sheet->getStyle("A$row")->getFont()->setBold(true);
@@ -103,6 +105,7 @@ function exportExcel($combinations, $days, $time_slots, $timetable)
 
     exit();
 }
+}
 
 // ✅ **Function to Export Timetable to PDF**
 function exportPDF($combinations, $days, $time_slots, $timetable)
@@ -118,9 +121,10 @@ function exportPDF($combinations, $days, $time_slots, $timetable)
     $pdf->Cell(190, 10, 'Timetable', 0, 1, 'C');
 
     foreach ($combinations as $combination) {
+        foreach (json_decode($combination["sections"]) as $section) {
         $pdf->Ln(5);
         $pdf->SetFont('helvetica', 'B', 10);
-        $pdf->Cell(190, 8, $combination['name'] . " (" . $combination['department'] . " - Semester " . $combination['semester'] . ")", 0, 1, 'C');
+        $pdf->Cell(190, 8, $combination['name'] . " (" . $combination['department'] . " - Semester " . $combination['semester'] . ") " .$section." Section", 0, 1, 'C');
 
         // ** Calculate dynamic column widths **
         $pageWidth = 190; // A4 page width without margins
@@ -139,7 +143,7 @@ function exportPDF($combinations, $days, $time_slots, $timetable)
 
         // ** Table Data **
         $pdf->SetFont('helvetica', '', 9);
-        $data = $timetable->getTimetableByCombination($combination['combination_id']);
+        $data = $timetable->getTimetableByCombination($combination['combination_id'],$section);
 
         foreach ($days as $day) {
             // ** Calculate max row height for this day **
@@ -172,6 +176,7 @@ function exportPDF($combinations, $days, $time_slots, $timetable)
             $pdf->Ln();
         }
     }
+}
 
     // ** Output PDF **
     $pdf->Output('Timetable.pdf', 'D');
