@@ -39,6 +39,14 @@ $combinations = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <option value="<?= $c['id'] ?>"> <?= $c['semester'] ?> sem - <?= $c['name'] ?></option>
             <?php endforeach; ?>
         </select>
+        <label>Section:</label>
+        <select name="section" class="border p-2 w-full mb-2" required>
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="C">C</option>
+            <option value="D">D</option>
+            <option value="E">E</option>
+        </select>
 
         <button type="submit" name="add_student" class="bg-blue-500 text-white px-4 py-2 rounded">Add</button>
     </form>

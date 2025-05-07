@@ -14,9 +14,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_student'])) {
     $combination_id = $_POST['combination_id'];
     $phone_no = $_POST['phone_no'];
     $address = $_POST['address'];
+    $section = $_POST['section'];
 
     
-    if ($student->addStudent($name, $email, $password, $combination_id, $phone_no, $address)) {
+    if ($student->addStudent($name, $email, $password, $combination_id, $phone_no, $address,$section)) {
         header("Location: ../views/admin/students.php?success=Student added!");
     } else {
         header("Location: ../views/admin/add_student.php?error=Failed to add student.");
@@ -26,7 +27,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_student'])) {
 // Handle Edit Student
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_student'])) {
 
-    if ($student->updateStudent($_POST['id'], $_POST['name'], $_POST['email'], $_POST['phone'], $_POST['combination_id'], $_POST['address'])) {
+    if ($student->updateStudent($_POST['id'], $_POST['name'], $_POST['email'], $_POST['phone'], $_POST['combination_id'], $_POST['section'],$_POST['address'])) {
         header("Location: ../views/admin/students.php?success=Student updated!");
     } else {
         header("Location: ../views/admin/edit_student.php?id=".$_POST['id']."&error=Update failed.");

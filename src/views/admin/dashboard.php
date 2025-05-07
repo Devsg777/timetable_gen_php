@@ -64,6 +64,12 @@ if (!isset($_SESSION['admin_id'])) {
           </a>
         </li>
         <li>
+          <a href="request.php" class="flex items-center gap-3 hover:bg-blue-700 p-2 rounded transition">
+            <i class="fas fa-paper-plane text-lg"></i>
+            <span>Requests</span>
+          </a>
+        </li>
+        <li>
           <a href="timetable.php" class="flex items-center gap-3 hover:bg-blue-700 p-2 rounded transition">
             <i class="fas fa-calendar-alt text-lg"></i>
             <span>Timetable</span>
@@ -108,8 +114,10 @@ if (!isset($_SESSION['admin_id'])) {
                 <i class="fas fa-calendar-alt text-red-600 text-3xl"></i>
                 <h3 class="text-lg font-bold mt-2">Timetable</h3>
             </a>
-            
-
+            <a href="request.php" class="bg-white p-4 rounded-lg shadow-md text-center hover:bg-gray-100">
+                <i class="fas fa-paper-plane text-teal-600 text-3xl"></i>
+                <h3 class="text-lg font-bold mt-2">Requests</h3>
+            </a>
         </div>
         
     </div>

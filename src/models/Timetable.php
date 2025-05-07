@@ -24,7 +24,6 @@ class Timetable
             JOIN teacher_subjects ts ON ts.subject_id = s.id
             JOIN teachers t ON t.id = ts.teacher_id
             JOIN classrooms cl ON cl.type = s.type
-            ORDER BY c.id, s.id
         ";
     
         $stmt = $this->conn->prepare($query);
@@ -254,47 +253,69 @@ class Timetable
     
         return true;
     }
-    
-
-    // ✅ Edit Timetable Entry
-    public function addTimetableEntry($day, $time, $islab, $combination_id, $subject_id, $teacher_id, $classroom_id)
+    public function addTimetableEntry($day, $time, $islab, $combination_id, $subject_id, $teacher_id, $classroom_id, $section)
     {
         if (!$this->conn) {
             die("Database connection is missing.");
         }
-
+    
         // Debug: Confirm received input
         echo "Received Input: \n";
-        var_dump(compact('day', 'time', 'islab', 'combination_id', 'subject_id', 'teacher_id', 'classroom_id'));
-
+        var_dump(compact('day', 'time', 'islab', 'combination_id', 'subject_id', 'teacher_id', 'classroom_id', 'section'));
+    
         // Split time range into start and end times
-        $time_range = explode(" - ", $time); // Splitting input
+        $time_range = explode(" - ", $time);
         $start_time = $time_range[0] . ":00"; // Format as HH:MM:SS
-        $end_time = $time_range[1] . ":00"; // Format as HH:MM:SS
-
+        $end_time = $time_range[1] . ":00";
+    
         // Ensure lab sessions are handled correctly
-        if (isset($data['islab']) && $data['islab'] === "on") {
-            // Define LAB duration logic correctly
-            $lab_duration = strtotime($start_time) + (2 * 60 * 60); // Adds 2 hours if it's a lab
+        if ($islab === "on" || $islab === 1) {
+            $lab_duration = strtotime($start_time) + (2 * 60 * 60); // Add 2 hours
             $end_time = date("H:i:s", $lab_duration);
         }
-
-        // Debug: Confirm time conversion
-        echo "Converted Start Time: $start_time, End Time: $end_time\n";
-        //convert string to int
+    
+        // Convert to integers
         $combination_id = (int)$combination_id;
         $subject_id = (int)$subject_id;
         $teacher_id = (int)$teacher_id;
         $classroom_id = (int)$classroom_id;
-
-        // SQL Query
+    
+        // Check for teacher or classroom conflict
+        $conflictQuery = "
+            SELECT * FROM timetable 
+            WHERE day = :day
+            AND (
+                (teacher_id = :teacher_id OR classroom_id = :classroom_id)
+                AND (
+                    (start_time < :end_time AND end_time > :start_time)
+                )
+            )
+        ";
+    
+        $stmtCheck = $this->conn->prepare($conflictQuery);
+        $stmtCheck->execute([
+            ':day' => $day,
+            ':teacher_id' => $teacher_id,
+            ':classroom_id' => $classroom_id,
+            ':start_time' => $start_time,
+            ':end_time' => $end_time
+        ]);
+    
+        if ($stmtCheck->rowCount() > 0) {
+            echo "Conflict detected: Teacher or Classroom already booked.\n";
+            return false;
+        }
+    
+        // No conflict, proceed with insertion
         $insertQuery = "
-                        INSERT INTO timetable (combination_id, subject_id, teacher_id, classroom_id, day, start_time, end_time) 
-                        VALUES (:combination_id, :subject_id, :teacher_id, :classroom_id, :day, :start_time, :end_time)";
-
+            INSERT INTO timetable (combination_id, section, subject_id, teacher_id, classroom_id, day, start_time, end_time)
+            VALUES (:combination_id, :section, :subject_id, :teacher_id, :classroom_id, :day, :start_time, :end_time)
+        ";
+    
         $stmtInsert = $this->conn->prepare($insertQuery);
         $stmtInsert->execute([
             ':combination_id' => $combination_id,
+            ':section' => $section,
             ':subject_id' => $subject_id,
             ':teacher_id' => $teacher_id,
             ':classroom_id' => $classroom_id,
@@ -302,23 +323,64 @@ class Timetable
             ':start_time' => $start_time,
             ':end_time' => $end_time
         ]);
+    
+        echo "Timetable entry added successfully.\n";
+        return true;
     }
-
-
-
-
+    
     // Edit Single Entry of Combination
     public function editTimetableEntry($id, $subject_id, $teacher_id, $classroom_id)
-    {
-        $query = "UPDATE timetable SET subject_id = :subject_id, teacher_id = :teacher_id, classroom_id = :classroom_id WHERE id = :id";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':subject_id', $subject_id);
-        $stmt->bindParam(':teacher_id', $teacher_id);
-        $stmt->bindParam(':classroom_id', $classroom_id);
-        $stmt->bindParam(':id', $id);
-        return $stmt->execute();
+{
+    if (!$this->conn) {
+        die("Database connection is missing.");
     }
 
+    // Fetch the current start_time and end_time of the entry being edited.
+    $getTimeQuery = "SELECT day, start_time, end_time FROM timetable WHERE id = :id";
+    $stmtGetTime = $this->conn->prepare($getTimeQuery);
+    $stmtGetTime->bindParam(':id', $id);
+    $stmtGetTime->execute();
+    $timeData = $stmtGetTime->fetch(PDO::FETCH_ASSOC);
+
+    if (!$timeData) {
+        echo "Error: Timetable entry not found.\n";
+        return false;
+    }
+
+    $day = $timeData['day'];
+    $start_time = $timeData['start_time'];
+    $end_time = $timeData['end_time'];
+
+    // Check for conflicts (room and teacher availability)
+    $conflictQuery = "SELECT id FROM timetable 
+                    WHERE day = :day 
+                    AND ((start_time <= :start_time AND end_time >= :start_time) OR (start_time <= :end_time AND end_time >= :end_time))
+                    AND (classroom_id = :classroom_id OR teacher_id = :teacher_id)
+                    AND id != :id"; // Exclude the entry being edited
+
+    $stmtConflict = $this->conn->prepare($conflictQuery);
+    $stmtConflict->execute([
+        ':day' => $day,
+        ':start_time' => $start_time,
+        ':end_time' => $end_time,
+        ':classroom_id' => $classroom_id,
+        ':teacher_id' => $teacher_id,
+        ':id' => $id,
+    ]);
+
+    if ($stmtConflict->fetch()) {
+        echo "Error: Room or teacher is not available for the selected time.\n";
+        return false; // Indicate failure
+    }
+
+    $query = "UPDATE timetable SET subject_id = :subject_id, teacher_id = :teacher_id, classroom_id = :classroom_id WHERE id = :id";
+    $stmt = $this->conn->prepare($query);
+    $stmt->bindParam(':subject_id', $subject_id);
+    $stmt->bindParam(':teacher_id', $teacher_id);
+    $stmt->bindParam(':classroom_id', $classroom_id);
+    $stmt->bindParam(':id', $id);
+    return $stmt->execute();
+}
     // ✅ Delete full timetable
     public function deleteTimetable()
     {
@@ -418,6 +480,26 @@ class Timetable
         return $formatted;
     }
 
+    public function getTimetableByCombination_Data($combination_id,$section)
+    {
+        $query = "
+            SELECT tt.id AS entry_id, tt.day, tt.start_time, tt.end_time, 
+                   s.name AS subject, t.name AS teacher, cr.room_no AS classroom
+            FROM timetable tt
+            JOIN subjects s ON tt.subject_id = s.id
+            JOIN teachers t ON tt.teacher_id = t.id
+            JOIN classrooms cr ON tt.classroom_id = cr.id
+            WHERE tt.combination_id = :combination_id AND tt.section = :section
+            ORDER BY FIELD(tt.day, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'), tt.start_time
+        ";
+    
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":combination_id", $combination_id);
+        $stmt->bindParam(":section", $section);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function getTimetableByTeacherId($teacher_id)
     {
         // $query = "SELECT * FROM timetable WHERE combination_id = :combination_id ORDER BY day, start_time";
@@ -428,7 +510,7 @@ class Timetable
 
         $query = "
     SELECT  tt.id AS entry_id, tt.day, tt.start_time, tt.end_time, 
-           s.name AS subject, c.name AS combination, c.semester AS semester, cr.room_no AS classroom
+           s.name AS subject, c.name AS combination, c.semester AS semester, cr.room_no AS classroom, tt.section
     FROM timetable tt
     JOIN subjects s ON tt.subject_id = s.id
     JOIN combinations c ON tt.combination_id = c.id
@@ -450,7 +532,13 @@ class Timetable
                 "subject" => $row["subject"],
                 "combination" => $row["combination"],
                 "semester" => $row['semester'],
-                "classroom" => $row["classroom"]
+                "classroom" => $row["classroom"],
+                "section" => $row['section'],
+                    "day" => $row['day'],
+                "start_time" => $row['start_time'],
+                "end_time" => $row['end_time']
+
+
             ];
         }
         return $formatted;
@@ -461,7 +549,7 @@ class Timetable
 
         $query = "
     SELECT  tt.id AS entry_id, tt.day as day, tt.start_time AS start_time, tt.end_time AS end_time, 
-           s.name AS subject, c.name AS combination, c.semester AS semester, cr.room_no AS classroom
+           s.name AS subject, c.name AS combination, c.semester AS semester, cr.room_no AS classroom, tt.section
     FROM timetable tt
     JOIN subjects s ON tt.subject_id = s.id
     JOIN combinations c ON tt.combination_id = c.id

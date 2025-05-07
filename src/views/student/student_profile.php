@@ -24,9 +24,10 @@
             $combination_id = $_POST['combination_id'];
             $phone_no = $_POST['phone_no'];
             $address = $_POST['address'];
+            $section = $_POST['section'];
 
             // Assuming you have an updateStudent method in your Student model
-            if ($stu->updateStudent($s_id, $name,$email, $combination_id, $phone_no, $address)) {
+            if ($stu->updateStudent($s_id, $name,$email, $combination_id, $phone_no, $address, $section)) {
                 $success_msg = "Profile updated successfully!";
                 // Refresh student data after update
                 $student = $stu->getStudentById($s_id);
@@ -97,6 +98,16 @@
                                 </option>
                             <?php } ?>
                         </select>
+                    </div>
+                    <div>
+                        <label for="section" class="block text-gray-700 text-sm font-bold mb-2">Section:</label>
+                        <select id="section" name="section" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                            <option value="A" <?= $currentStudent['section'] == 'A' ? 'selected' : ''; ?>>A</option>
+                            <option value="B" <?= $currentStudent['section'] == 'B' ? 'selected' : ''; ?>>B</option>
+                            <option value="C" <?= $currentStudent['section'] == 'C' ? 'selected' : ''; ?>>C</option>
+                            <option value="D" <?= $currentStudent['section'] == 'D' ? 'selected' : ''; ?>>D</option>
+                            <option value="E" <?= $currentStudent['section'] == 'E' ? 'selected' : ''; ?>>E</option>
+                        </select>                       
                     </div>
                     <div>
                         <label for="email" class="block text-gray-700 text-sm font-bold mb-2">Email:</label>

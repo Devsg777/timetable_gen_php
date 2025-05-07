@@ -11,6 +11,8 @@ if (!isset($_SESSION['admin_id']) && !isset($_SESSION['teacher_id']) && !isset($
     header("Location: ../../index.php");
     exit();
 }
+$stu_comb= $_SESSION['student_combination'];
+$stu_sec =$_SESSION['student_section']; 
 $database = new Database();
 $db = $database->getConnection();
 $timetable = new Timetable($db);
@@ -50,12 +52,12 @@ $flag = false;
             </div>
         </div>
 
-        <?php foreach ($combinations as $combination) : ?>
-            <?php if ($combination['combination_id'] == ($_SESSION['student_com'] ?? null)) : $flag=true; ?>
+        <?php foreach ($combinations as $combination) :  ?>
+            <?php if ($combination['combination_id'] == ($stu_comb )) : $flag=true; ?>
                 
                 <div class="bg-white p-6 rounded-lg shadow-md mb-8">
                     <h2 class="text-xl font-bold mb-4 text-center text-indigo-600">
-                        <?= htmlspecialchars($combination['name']) . " (" . htmlspecialchars($combination['department']) . " - Semester " . htmlspecialchars($combination['semester']) . ")"; ?>
+                        <?= htmlspecialchars($combination['name']) . " (" . htmlspecialchars($combination['department']) . " - Semester " . htmlspecialchars($combination['semester']) . $_SESSION['student_section'].")"; ?>
                     </h2>
                     <div class="overflow-x-auto">
                         <table class="w-full border-collapse border border-gray-300">
@@ -68,7 +70,7 @@ $flag = false;
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php $data = $timetable->getTimetableByCombination($combination['combination_id']); ?>
+                                <?php $data = $timetable->getTimetableByCombination($combination['combination_id'],$stu_sec); ?>
                                 <?php foreach ($days as $day) : ?>
                                     <tr>
                                         <td class="border border-gray-300 p-3 bg-gray-100 font-bold text-gray-800"><?= htmlspecialchars($day); ?></td>

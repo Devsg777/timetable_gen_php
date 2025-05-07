@@ -54,8 +54,9 @@ $students = $student->getAllStudentsWithCombination(); // Fetch student data wit
                                 <span><?= htmlspecialchars($s['phone_no']) ?></span>
                             </td>
                             <td class="px-5 py-3">
-                                <span><?= htmlspecialchars($s['combination_semester']) ?> sem - <?= htmlspecialchars($s['combination_name']) ?></span>
+                                <span><?= htmlspecialchars($s['combination_semester']) ?> sem - <?= htmlspecialchars($s['combination_name']) ?> (<?= htmlspecialchars($s['section']) ?>)</span>
                             </td>
+                           
                             <td class="px-5 py-3 text-center">
                                 <div class="flex justify-center items-center">
                                     <a href="edit_student.php?id=<?= htmlspecialchars($s['id']) ?>" class="text-blue-500 hover:text-blue-700 mr-3">

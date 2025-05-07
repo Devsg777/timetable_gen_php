@@ -20,13 +20,12 @@ $db = $database->getConnection();
 $timetable = new Timetable($db);
 
 
-
 // Fetch timetables for all combinations
 $timetable_data = $timetable->getTimetableGrid();
 $combinations = $timetable->getAllCombinations(); // Fetch distinct combinations
 
 
-$time_slots =  ['09:00 - 10:00', '10:00 - 11:00', '11:00 - 12:00', '12:00 - 01:00', '01:00 - 02:00', '02:00 - 03:00', '03:00 - 04:00', '04:00 - 05:00'];
+$time_slots =  ['09:00 - 10:00', '10:00 - 11:00', '11:00 - 12:00', '12:00 - 13:00', '01:00 - 02:00', '02:00 - 03:00', '03:00 - 04:00', '04:00 - 05:00','05:00 - 06:00'];
 $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 ?>
 
@@ -70,7 +69,7 @@ $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
                                     <?php if (isset($data[$day][$slot])) :
                                         $entry = $data[$day][$slot]; ?>
                                         <td class="border border-gray-300 p-2 text-sm text-center">
-                                        <span class="text-gray-600"><?= htmlspecialchars($entry['combination']); ?></span>- <?= htmlspecialchars($entry['semester']); ?> Sem<br>
+                                        <span class="text-gray-600"><?= htmlspecialchars($entry['combination']); ?></span>- <?= htmlspecialchars($entry['semester']); ?> Sem (<?=htmlspecialchars($entry['section']) ?>) <br>
                                             <b><?= htmlspecialchars($entry['subject']); ?></b><br>
                                             <span class="text-gray-500">Room: <?= htmlspecialchars($entry['classroom']); ?></span><br>
                                         </td>

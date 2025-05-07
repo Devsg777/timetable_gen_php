@@ -28,10 +28,10 @@ if (isset($_GET['delete'])) {
 }
 // Edit Timetable Entry
 if (isset($_POST['edit'])) {
-    if($timetable->editTimetableEntry($_POST['id'],$_POST['subject'], $_POST['teacher'], $_POST['classroom'])){
+    if($timetable->editTimetableEntry($_POST['entry_id'],$_POST['subject'], $_POST['teacher'], $_POST['classroom'])){
         header("Location: ../views/admin/timetable.php?success=Timetable Entry Updated Successfully");
     }else{
-        header("Location: ../views/admin/timetable.php?error=Failed to Update Timetable Entry");
+        header("Location: ../views/admin/timetable.php?error=Failed to Update Timetable Entry Because of Conflicting Entry");
     }
     exit();
 }
@@ -47,10 +47,10 @@ if(isset($_GET['delete_id'])){
 }
 
 if(isset($_POST['add'])){
-    if($timetable->addTimetableEntry($_POST['day'],$_POST['time'],$_POST['isLab'],$_POST['combination_id'],$_POST['subject'], $_POST['teacher'], $_POST['classroom'])){
+    if($timetable->addTimetableEntry($_POST['day'],$_POST['time'],$_POST['isLab'],$_POST['combination_id'],$_POST['subject'], $_POST['teacher'], $_POST['classroom'],$_POST['section'])){
         header("Location: ../views/admin/timetable.php?success=Timetable Entry Added Successfully");
     }else{
-        header("Location: ../views/admin/timetable.php?error=Failed to Add Timetable Entry");
+        header("Location: ../views/admin/timetable.php?error=Failed to Add Timetable Entry Because of Conflicting Entry");
     }
     exit();
 }

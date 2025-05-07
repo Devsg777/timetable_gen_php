@@ -29,6 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_student'])) {
     $phone_no = $_POST['phone_no'];
     $address = $_POST['address'];
     $combination_id = $_POST['combination_id'];
+    $section = $_POST['section'];
     $password = $_POST['password'];
 
     if ($combination_id == '') {
@@ -38,9 +39,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_student'])) {
 
     if ($password != '') {
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-        $student->updateStudentWithPass($id, $name, $email, $phone_no, $address, $combination_id, $hashedPassword);
+        $student->updateStudentWithPass($id, $name, $email, $phone_no, $address, $combination_id, $section,$hashedPassword );
     } else {
-        $student->updateStudent($id, $name, $email, $phone_no, $address, $combination_id);
+        $student->updateStudent($id, $name, $email, $phone_no, $address, $combination_id, $section);
     }
     header("Location: students.php?success=Student updated successfully");
     exit(); // Ensure script stops after redirection
@@ -83,6 +84,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_student'])) {
                             <?= htmlspecialchars($comb['semester']); ?> sem - <?= htmlspecialchars($comb['name']); ?>
                         </option>
                     <?php } ?>
+                </select>
+            </div>
+            <div>
+                <label class="block font-medium">Section</label>
+                <select name="section" class="w-full border rounded px-3 py-2">
+                    <option value="A" <?= ($currentStudent['section'] == 'A') ? 'selected' : ''; ?>>A</option>
+                    <option value="B" <?= ($currentStudent['section'] == 'B') ? 'selected' : ''; ?>>B</option>
+                    <option value="C" <?= ($currentStudent['section'] == 'C') ? 'selected' : ''; ?>>C</option>
+                    <option value="D" <?= ($currentStudent['section'] == 'D') ? 'selected' : ''; ?>>D</option>
+                    <option value="E" <?= ($currentStudent['section'] == 'E') ? 'selected' : ''; ?>>E</option>
                 </select>
             </div>
             <div class="mb-4">
