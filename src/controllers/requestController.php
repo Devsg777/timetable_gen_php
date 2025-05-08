@@ -112,5 +112,17 @@ function getRequestDetails($db, $requestId) {
     return $requestModel->getRequestById($requestId);
 }
 
-// You would then call these functions in your admin views to display the data.
+// Delete Request get method by id
+if (isset($_GET['delete_request_id'])) {
+    $requestId = $_GET['delete_request_id'];
+    if ($request->deleteRequest($requestId)) {
+        header("Location: ../views/admin/my_request.php?success=Request deleted successfully");
+        exit();
+    } else {
+        header("Location: ../views/admin/my_request.php?error=Failed to delete request");
+        exit();
+    }
+}
+
+
 ?>

@@ -80,12 +80,10 @@ $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
             </a>
         </div>
         <?php if($_GET['success'] ?? false) {
-
 echo '<div class="alert alert-success bg-green-200 p-3 m-3 text-center text-green-600 border ">'.$_GET['success'].'</div>';
 } elseif($_GET['error'] ?? false) {
 echo '<div class="alert alert-danger bg-red-200 p-3 m-3 text-center text-red-600 border">'.$_GET['error'].'</div>';
 } ?>
-
         <?php foreach ($combinations as $combination) : ?>
             <?php foreach (json_decode($combination["sections"]) as $section) : ?>
                 <div class="max-w-7xl mx-auto bg-white p-2 rounded-lg shadow-md mb-3">

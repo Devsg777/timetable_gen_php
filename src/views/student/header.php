@@ -37,7 +37,7 @@ if (!isset($_SESSION['student_id'])) {
                     </li>
                    
                     <li class="mb-4">
-                        <a href="sendRequest.php" class="block p-3 rounded-md hover:bg-blue-800 transition duration-300 ease-in-out flex items-center">
+                        <a href="my_request.php" class="block p-3 rounded-md hover:bg-blue-800 transition duration-300 ease-in-out flex items-center">
                             <i class="fa-solid fa-paper-plane mr-3 fa-lg"></i>
                             Request Change
                         </a>

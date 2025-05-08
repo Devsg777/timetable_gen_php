@@ -34,8 +34,8 @@ class Timetable
         $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         $theory_slots = ['09:00:00', '10:00:00', '11:00:00', '12:00:00', '02:00:00', '03:00:00', '04:00:00', '05:00:00'];
         $lab_blocks = [
-            ['start' => '09:00:00', 'end' => '12:00:00'],
-            ['start' => '02:00:00', 'end' => '05:00:00']
+            ['start' => '09:00:00', 'end' => '13:00:00'],
+            ['start' => '02:00:00', 'end' => '06:00:00']
         ];
     
         $teacher_theory_hours = [];
@@ -87,7 +87,7 @@ class Timetable
             
                         // Check if this time is free for all sections (regardless of subject)
                         foreach ($sections as $section) {
-                            for ($h = 0; $h < 3; $h++) {
+                            for ($h = 0; $h < 4; $h++) {
                                 $t = date("H:i:s", strtotime($block['start']) + $h * 3600);
                                 if (isset($section_avail["$combination_id-$section"][$day][$t])) {
                                     $all_sections_schedulable = false;
@@ -128,7 +128,7 @@ class Timetable
             
                                 // Check availability of teacher and room for 3 hours
                                 $conflict = false;
-                                for ($h = 0; $h < 3; $h++) {
+                                for ($h = 0; $h < 4; $h++) {
                                     $t = date("H:i:s", strtotime($block['start']) + $h * 3600);
                                     if (
                                         isset($teacher_avail[$tid][$day][$t]) ||
@@ -157,14 +157,14 @@ class Timetable
                                     ':end_time' => $block['end']
                                 ]);
             
-                                for ($h = 0; $h < 3; $h++) {
+                                for ($h = 0; $h < 4; $h++) {
                                     $t = date("H:i:s", strtotime($block['start']) + $h * 3600);
                                     $teacher_avail[$tid][$day][$t] = true;
                                     $classroom_avail[$clid][$day][$t] = true;
                                     $section_avail["$combination_id-$section"][$day][$t] = true;
                                 }
             
-                                $teacher_lab_hours[$tid] += 3;
+                                $teacher_lab_hours[$tid] += 4;
                                 $section_subject_schedule_count[$sid][$section] = ($section_subject_schedule_count[$sid][$section] ?? 0) + 1;
                                 break;
                             }
@@ -270,7 +270,7 @@ class Timetable
     
         // Ensure lab sessions are handled correctly
         if ($islab === "on" || $islab === 1) {
-            $lab_duration = strtotime($start_time) + (2 * 60 * 60); // Add 2 hours
+            $lab_duration = strtotime($start_time) + (4 * 60 * 60); // Add 4 hours
             $end_time = date("H:i:s", $lab_duration);
         }
     
@@ -596,6 +596,24 @@ class Timetable
         $stmt->bindParam(':entry_id', $entry_id);
     
         return $stmt->execute();
+    }
+
+    public function getTimetableById($id)
+    {
+        $query = "SELECT  tt.id AS entry_id, tt.day as day, tt.start_time AS start_time, tt.end_time AS end_time, 
+        s.name AS subject, c.name AS combination, c.semester AS semester, cr.room_no AS classroom, tt.section AS section ,t.name AS teacher_name
+        FROM timetable tt
+        JOIN subjects s ON tt.subject_id = s.id
+        JOIN combinations c ON tt.combination_id = c.id
+        JOIN classrooms cr ON tt.classroom_id = cr.id
+        JOIN teachers t ON tt.teacher_id = t.id
+        WHERE tt.id = :id";
+
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':id', $id);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
     
 }

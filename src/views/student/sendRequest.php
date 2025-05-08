@@ -60,7 +60,6 @@ echo '<div class="alert alert-success bg-green-200 p-3 m-3 text-center text-gree
 echo '<div class="alert alert-danger bg-red-200 p-3 m-3 text-center text-red-600 border">Error sending request. Please try again.</div>';
 } ?>
         <h2 class="text-2xl font-semibold mb-4">Send Class Change Request</h2>
-
         <form action="../../controllers/RequestController.php" method="POST">
             <div class="mb-4">
                 <label for="existing_timetable_id" class="block text-gray-700">Select Class to Request Change For:</label>

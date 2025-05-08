@@ -111,7 +111,6 @@ class Request {
     public function getRequestById($id) {
         $query = "SELECT
                     r.id,
-                    r.requester_id,
                     r.requester_type,
                     r.request_type,
                     r.existing_timetable_id,
@@ -123,8 +122,21 @@ class Request {
                     r.proposed_end_time,
                     r.reason,
                     r.request_date,
-                    r.status_id
+                    rs.status_name,
+                    tchr_req.name AS teacher_name_requested,
+                    stud_req.name AS student_name_requested,
+                    tchr_req.id AS teacher_id_requested,
+                    stud_req.id AS student_id_requested,
+                    sub.name AS proposed_subject_name,
+                    teach_prop.name AS proposed_teacher_name,
+                    cr.room_no AS proposed_classroom_name
                   FROM requests r
+                  JOIN request_statuses rs ON r.status_id = rs.id
+                  LEFT JOIN teachers tchr_req ON r.teacher_id = tchr_req.id
+                  LEFT JOIN students stud_req ON r.student_id = stud_req.id
+                  LEFT JOIN subjects sub ON r.proposed_subject_id = sub.id
+                  LEFT JOIN teachers teach_prop ON r.proposed_teacher_id = teach_prop.id
+                  LEFT JOIN classrooms cr ON r.proposed_classroom_id = cr.id
                   WHERE r.id = :id";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(":id", $id, PDO::PARAM_INT);
@@ -132,6 +144,87 @@ class Request {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
+    public function getRequestsByTeacherId($teacher_id) {
+        $query = "SELECT
+                    r.id,
+                    r.requester_type,
+                    r.request_type,
+                    r.existing_timetable_id,
+                    r.proposed_subject_id,
+                    r.proposed_teacher_id,
+                    r.proposed_classroom_id,
+                    r.proposed_day,
+                    r.proposed_start_time,
+                    r.proposed_end_time,
+                    r.reason,
+                    r.request_date,
+                    rs.status_name,
+                    tchr_req.name AS teacher_name_requested,
+                    stud_req.name AS student_name_requested,
+                    tchr_req.id AS teacher_id_requested,
+                    stud_req.id AS student_id_requested,
+                    sub.name AS proposed_subject_name,
+                    teach_prop.name AS proposed_teacher_name,
+                    cr.room_no AS proposed_classroom_name
+                  FROM requests r
+                  JOIN request_statuses rs ON r.status_id = rs.id
+                  LEFT JOIN teachers tchr_req ON r.teacher_id = tchr_req.id
+                  LEFT JOIN students stud_req ON r.student_id = stud_req.id
+                  LEFT JOIN subjects sub ON r.proposed_subject_id = sub.id
+                  LEFT JOIN teachers teach_prop ON r.proposed_teacher_id = teach_prop.id
+                  LEFT JOIN classrooms cr ON r.proposed_classroom_id = cr.id
+                  WHERE tchr_req.id = :teacher_id OR stud_req.id = :teacher_id";
+        // Note: Adjust the WHERE clause based on your actual logic for filtering by teacher_id
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":teacher_id", $teacher_id, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function deleteRequest($id) {
+        $query = "DELETE FROM requests WHERE id = :id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":id", $id, PDO::PARAM_INT);
+        return $stmt->execute();
+    }
+
+    Public function getRequestByStudentId($student_id) {
+        $query = "SELECT
+                    r.id,
+                    r.requester_type,
+                    r.request_type,
+                    r.existing_timetable_id,
+                    r.proposed_subject_id,
+                    r.proposed_teacher_id,
+                    r.proposed_classroom_id,
+                    r.proposed_day,
+                    r.proposed_start_time,
+                    r.proposed_end_time,
+                    r.reason,
+                    r.request_date,
+                    rs.status_name,
+                    tchr_req.name AS teacher_name_requested,
+                    stud_req.name AS student_name_requested,
+                    tchr_req.id AS teacher_id_requested,
+                    stud_req.id AS student_id_requested,
+                    sub.name AS proposed_subject_name,
+                    teach_prop.name AS proposed_teacher_name,
+                    cr.room_no AS proposed_classroom_name
+                  FROM requests r
+                  JOIN request_statuses rs ON r.status_id = rs.id
+                  LEFT JOIN teachers tchr_req ON r.teacher_id = tchr_req.id
+                  LEFT JOIN students stud_req ON r.student_id = stud_req.id
+                  LEFT JOIN subjects sub ON r.proposed_subject_id = sub.id
+                  LEFT JOIN teachers teach_prop ON r.proposed_teacher_id = teach_prop.id
+                  LEFT JOIN classrooms cr ON r.proposed_classroom_id = cr.id
+                  WHERE stud_req.id = :student_id
+                  ORDER BY r.request_date DESC
+        ";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":student_id", $student_id, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
     public function updateRequestStatus($id, $status_id) {
         $query = "UPDATE requests SET status_id = :status_id WHERE id = :id";
         $stmt = $this->conn->prepare($query);
