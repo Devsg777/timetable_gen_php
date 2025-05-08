@@ -58,7 +58,8 @@
             <p class="bg-red-200 text-red-700 p-2 rounded"><?php echo $error_msg; ?></p>
         <?php endif; ?>
 
-        <form method="edit" class="space-y-4" action="./../../controllers/teacherController.php">
+        <form method="post" class="space-y-4" action="./../../controllers/teacherController.php">
+    
             <label class="block font-semibold">Name:</label>
             <input type="hidden" name="id" value="<?php echo htmlspecialchars($teacher['id']); ?>">
             <input type="hidden" name="min_class_hours_week" value="<?php echo htmlspecialchars($teacher['min_class_hours_week']); ?>">
@@ -67,10 +68,10 @@
             <input type="text" name="name" value="<?php echo htmlspecialchars($teacher['name']); ?>" class="w-full p-2 border rounded">
 
             <label class="block font-semibold">Department:</label>
-            <input type="text" value="<?php echo htmlspecialchars($teacher['department']); ?>" class="w-full p-2 border rounded bg-gray-200" disabled>
+            <input type="text" name="department" value="<?php echo htmlspecialchars($teacher['department']); ?>" class="w-full p-2 border rounded bg-gray-200" disabled>
 
             <label class="block font-semibold">Email:</label>
-            <input type="email" value="<?php echo htmlspecialchars($teacher['email']); ?>" class="w-full p-2 border rounded bg-gray-200" disabled>
+            <input type="email" name="emial" value="<?php echo htmlspecialchars($teacher['email']); ?>" class="w-full p-2 border rounded bg-gray-200" disabled>
 
             <label class="block font-semibold">Phone No:</label>
             <input type="text" name="phone_no" value="<?php echo htmlspecialchars($teacher['phone_no']); ?>" class="w-full p-2 border rounded">
@@ -78,7 +79,7 @@
             <label class="block font-semibold">Address:</label>
             <textarea name="address" class="w-full p-2 border rounded"><?php echo htmlspecialchars($teacher['address']); ?></textarea>
 
-            <button type="submit" name="update_profile" class="bg-blue-600 text-white px-4 py-2 rounded">Update Profile</button>
+            <button type="submit" name="edit" class="bg-blue-600 text-white px-4 py-2 rounded">Update Profile</button>
         </form>
         </div>
         <div>

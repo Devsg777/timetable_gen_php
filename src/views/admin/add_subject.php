@@ -11,6 +11,12 @@ $combinations = $combination->getCombinations();
 
 <?php include "header.php"; ?>
     <div class="max-w-4xl mx-auto bg-white p-6 rounded shadow-lg">
+    <?php if($_GET['success'] ?? false) {
+
+echo '<div class="alert alert-success bg-green-200 p-3 m-3 text-center text-green-600 border ">'.$_GET['success'].'</div>';
+} elseif($_GET['error'] ?? false) {
+echo '<div class="alert alert-danger bg-red-200 p-3 m-3 text-center text-red-600 border">'.$_GET['error'].'</div>';
+} ?>
         <h2 class="text-2xl font-semibold mb-4">Add Subject</h2>
 
         <form action="../../controllers/SubjectController.php" method="POST">

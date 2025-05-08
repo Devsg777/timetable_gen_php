@@ -206,7 +206,7 @@ echo '<div class="alert alert-danger bg-red-200 p-3 m-3 text-center text-red-600
                     <p>Day: <span class="font-bold" id='dayshow'></span> Time: <span class="font-bold" id='timeshow'></span></p>
                     <div class="mb-4">
                         <label class="block font-semibold">Subject</label>
-                        <select name="subject" id="addSubject" class="w-full p-2 border rounded">
+                        <select name="subject" id="addSubject" class="w-full p-2 border rounded" required>
                             <option value="">Select Subject</option>
                             <?php foreach ($subjects as $subject) : ?>
                                 <option value="<?= $subject['id'] ?>"><?= $subject['name'] ?></option>
@@ -219,7 +219,7 @@ echo '<div class="alert alert-danger bg-red-200 p-3 m-3 text-center text-red-600
                     </div>
                     <div class="mb-4">
                         <label class="block font-semibold">Teacher</label>
-                        <select name="teacher" id="addTeacher" class="w-full p-2 border rounded">
+                        <select name="teacher" id="addTeacher" class="w-full p-2 border rounded" required>
                             <option value="">Select Teacher</option>
                             <?php foreach ($teachers as $teacher) : ?>
                                 <option value="<?= $teacher['id'] ?>"><?= $teacher['name'] ?></option>
@@ -228,7 +228,7 @@ echo '<div class="alert alert-danger bg-red-200 p-3 m-3 text-center text-red-600
                     </div>
                     <div class="mb-4">
                         <label class="block font-semibold">Classroom</label>
-                        <select name="classroom" id="addClassroom" class="w-full p-2 border rounded">
+                        <select name="classroom" id="addClassroom" class="w-full p-2 border rounded" required>
                             <option value="">Select Classroom</option>
                             <?php foreach ($classrooms as $classroom) : ?>
                                 <option value="<?= $classroom['id'] ?>"><?= $classroom['room_no'] ?></option>
@@ -250,7 +250,7 @@ echo '<div class="alert alert-danger bg-red-200 p-3 m-3 text-center text-red-600
                     <input type="hidden" name="entry_id" id="editId">
                     <div class="mb-4">
                         <label class="block font-semibold">Subject</label>
-                        <select name="subject" id="editSubject" class="w-full p-2 border rounded">
+                        <select name="subject" id="editSubject" class="w-full p-2 border rounded" required>
                             <option value="">Select Subject</option>
                             <?php foreach ($subjects as $subject) : ?>
                                 <option value="<?= $subject['id'] ?>"><?= $subject['name'] ?></option>
@@ -263,7 +263,7 @@ echo '<div class="alert alert-danger bg-red-200 p-3 m-3 text-center text-red-600
                     </div>
                     <div class="mb-4">
                         <label class="block font-semibold">Teacher</label>
-                        <select name="teacher" id="editTeacher" class="w-full p-2 border rounded">
+                        <select name="teacher" id="editTeacher" class="w-full p-2 border rounded" required>
                             <option value="">Select Teacher</option>
                             <?php foreach ($teachers as $teacher) : ?>
                                 <option value="<?= $teacher['id'] ?>"><?= $teacher['name'] ?></option>
@@ -272,7 +272,7 @@ echo '<div class="alert alert-danger bg-red-200 p-3 m-3 text-center text-red-600
                     </div>
                     <div class="mb-4">
                         <label class="block font-semibold">Classroom</label>
-                        <select name="classroom" id="editClassroom" class="w-full p-2 border rounded">
+                        <select name="classroom" id="editClassroom" class="w-full p-2 border rounded" required>
                             <option value="">Select Classroom</option>
                             <?php foreach ($classrooms as $classroom) : ?>
                                 <option value="<?= $classroom['id'] ?>"><?= $classroom['room_no'] ?></option>
