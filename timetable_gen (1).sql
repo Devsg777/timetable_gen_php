@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 24, 2025 at 06:48 AM
+-- Generation Time: May 08, 2025 at 03:37 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -85,52 +85,18 @@ CREATE TABLE `combinations` (
   `id` int(11) NOT NULL,
   `name` varchar(100) NOT NULL,
   `department` varchar(100) NOT NULL,
-  `semester` int(11) NOT NULL
+  `semester` int(11) NOT NULL,
+  `sections` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`sections`))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `combinations`
 --
 
-INSERT INTO `combinations` (`id`, `name`, `department`, `semester`) VALUES
-(6, 'BCA', 'Computer Applications', 1),
-(7, 'BCA', 'Computer Applications', 2),
-(8, 'BCA', 'Computer Applications', 3),
-(9, 'BCA', 'Computer Applications', 4),
-(10, 'BCA', 'Computer Applications', 5),
-(11, 'BCA', 'Computer Applications', 6),
-(12, 'PCM', 'Science', 1),
-(13, 'PCM', 'Science', 2),
-(14, 'PCM', 'Science', 3),
-(15, 'PCM', 'Science', 4),
-(16, 'PCM', 'Science', 5),
-(17, 'PCM', 'Science', 6),
-(18, 'CBZ', 'Science', 1),
-(19, 'CBZ', 'Science', 2),
-(20, 'CBZ', 'Science', 3),
-(21, 'CBZ', 'Science', 4),
-(22, 'CBZ', 'Science', 5),
-(23, 'CBZ', 'Science', 6),
-(24, 'HES', 'Arts', 1),
-(25, 'HES', 'Arts', 2),
-(26, 'HES', 'Arts', 3),
-(27, 'HES', 'Arts', 4),
-(28, 'HES', 'Arts', 5),
-(29, 'HES', 'Arts', 6),
-(30, 'KES', 'Arts', 1),
-(31, 'KES', 'Arts', 2),
-(32, 'KES', 'Arts', 3),
-(33, 'KES', 'Arts', 4),
-(34, 'KES', 'Arts', 5),
-(35, 'KES', 'Arts', 6),
-(36, 'B.Com', 'Commerce', 1),
-(37, 'B.Com', 'Commerce', 2),
-(38, 'B.Com', 'Commerce', 3),
-(39, 'B.Com', 'Commerce', 4),
-(41, 'B.Com', 'Commerce', 6),
-(43, 'CBZT', 'Bio', 1),
-(44, 'CBZT', 'Bio', 1),
-(45, 'BMBT', 'Biology', 1);
+INSERT INTO `combinations` (`id`, `name`, `department`, `semester`, `sections`) VALUES
+(47, 'Bcom', 'Commerce', 6, '[\"A\"]'),
+(48, 'BCA', 'BCA', 6, '[\"A\",\"B\"]'),
+(50, 'BSc', 'computer science', 6, '[\"A\",\"B\",\"C\"]');
 
 -- --------------------------------------------------------
 
@@ -140,12 +106,49 @@ INSERT INTO `combinations` (`id`, `name`, `department`, `semester`) VALUES
 
 CREATE TABLE `requests` (
   `id` int(225) NOT NULL,
-  `requester_id` int(225) NOT NULL,
-  `entry_id` int(225) NOT NULL,
-  `request_type` varchar(225) NOT NULL,
-  `description` varchar(225) NOT NULL,
-  `requester` varchar(225) NOT NULL
+  `requester_type` enum('teacher','student') NOT NULL,
+  `teacher_id` int(225) DEFAULT NULL,
+  `student_id` int(225) DEFAULT NULL,
+  `request_type` enum('class_change') NOT NULL DEFAULT 'class_change',
+  `existing_timetable_id` int(11) NOT NULL,
+  `proposed_subject_id` int(11) DEFAULT NULL,
+  `proposed_teacher_id` int(11) DEFAULT NULL,
+  `proposed_classroom_id` int(11) DEFAULT NULL,
+  `proposed_day` enum('Monday','Tuesday','Wednesday','Thursday','Friday','Saturday') DEFAULT NULL,
+  `proposed_start_time` time DEFAULT NULL,
+  `proposed_end_time` time DEFAULT NULL,
+  `reason` text DEFAULT NULL,
+  `request_date` timestamp NOT NULL DEFAULT current_timestamp(),
+  `status_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `requests`
+--
+
+INSERT INTO `requests` (`id`, `requester_type`, `teacher_id`, `student_id`, `request_type`, `existing_timetable_id`, `proposed_subject_id`, `proposed_teacher_id`, `proposed_classroom_id`, `proposed_day`, `proposed_start_time`, `proposed_end_time`, `reason`, `request_date`, `status_id`) VALUES
+(9, 'teacher', 12, NULL, 'class_change', 5927, 50, 10, 13, 'Tuesday', '10:00:00', '11:00:00', 'i cannot come college early', '2025-05-07 06:47:02', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `request_statuses`
+--
+
+CREATE TABLE `request_statuses` (
+  `id` int(11) NOT NULL,
+  `status_name` varchar(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `request_statuses`
+--
+
+INSERT INTO `request_statuses` (`id`, `status_name`) VALUES
+(3, 'Admitted'),
+(4, 'Cancelled'),
+(1, 'Pending'),
+(2, 'Received');
 
 -- --------------------------------------------------------
 
@@ -159,6 +162,7 @@ CREATE TABLE `students` (
   `email` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,
   `combination_id` int(11) NOT NULL,
+  `section` varchar(225) NOT NULL,
   `phone_no` varchar(15) NOT NULL,
   `address` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -167,20 +171,8 @@ CREATE TABLE `students` (
 -- Dumping data for table `students`
 --
 
-INSERT INTO `students` (`id`, `name`, `email`, `password`, `combination_id`, `phone_no`, `address`) VALUES
-(2, 'Dev S G', 'devsg777@gmail.com', '$2y$10$rK0c8uJOqgRKFCbCc.6xGeNTczHTtYK.a4qwEfvywqUXkYr7bIRvq', 6, '09141189941', 'hassan');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `student_timetable`
---
-
-CREATE TABLE `student_timetable` (
-  `id` int(11) NOT NULL,
-  `student_id` int(11) NOT NULL,
-  `timetable_id` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+INSERT INTO `students` (`id`, `name`, `email`, `password`, `combination_id`, `section`, `phone_no`, `address`) VALUES
+(3, 'Dev S G', 'devsg777@gmail.com', '$2y$10$5ewWe92B8wo04MzoH01sHObxX38OotrxDSc.Gv5Nx4WdG8EHa5VDu', 48, 'A', '09141189941', 'Hassan');
 
 -- --------------------------------------------------------
 
@@ -202,28 +194,16 @@ CREATE TABLE `subjects` (
 --
 
 INSERT INTO `subjects` (`id`, `name`, `min_classes_per_week`, `type`, `duration`, `combination_id`) VALUES
-(12, 'DBMS', 3, 'theory', 1, 9),
-(13, 'Operating System', 3, 'theory', 1, 9),
-(14, 'Mathematics', 3, 'theory', 1, 9),
-(15, 'Biology', 3, 'theory', 1, 19),
-(16, 'Zoology', 3, 'theory', 1, 19),
-(17, 'Botany', 3, 'theory', 1, 19),
-(18, 'History', 3, 'theory', 1, 19),
-(19, 'Economics', 3, 'theory', 1, 19),
-(20, 'Sociology', 3, 'theory', 1, 41),
-(21, 'Political Science', 3, 'theory', 1, 41),
-(22, 'Economics', 3, 'theory', 1, 41),
-(23, 'Statistics', 3, 'theory', 1, 41),
-(24, 'Accountancy Lab', 4, 'lab', 1, 41),
-(25, 'Financial Management', 4, 'theory', 1, 41),
-(26, 'Business Law', 4, 'theory', 1, 41),
-(28, 'History', 4, 'theory', 1, 41),
-(29, 'PHP Lab', 2, 'lab', 4, 9),
-(30, 'Java Programming Lab', 2, 'lab', 4, 9),
-(31, 'Botany Lab', 2, 'lab', 4, 19),
-(32, 'Web Technology', 4, 'theory', 1, 9),
-(33, 'Java Theory', 3, 'theory', 1, 9),
-(34, 'PHP Theory', 4, 'theory', 1, 9);
+(43, 'Linux Lab', 1, 'lab', 3, 48),
+(44, 'Cyber Security', 3, 'theory', 1, 48),
+(45, 'Advance Networking', 4, 'theory', 1, 48),
+(46, 'Java Programming ', 4, 'theory', 1, 48),
+(47, 'Web Technology', 5, 'theory', 1, 48),
+(48, 'PHP Lab', 1, 'lab', 3, 48),
+(49, 'PHP Theory', 4, 'theory', 1, 48),
+(50, 'Operating System', 3, 'theory', 1, 48),
+(51, 'computer network ', 2, 'theory', 1, 50),
+(52, 'c', 6, 'theory', 1, 50);
 
 -- --------------------------------------------------------
 
@@ -252,10 +232,12 @@ INSERT INTO `teachers` (`id`, `name`, `department`, `email`, `password`, `phone_
 (4, 'Prof. Aditi', 'BSc', 'aditi@college.com', 'password', '9876543211', 'Mysore', 6, 2),
 (5, 'Dr. Sameer', 'Physics', 'sameer@college.com', 'password', '9876543212', 'Hubli', 6, 2),
 (6, 'Prof. Madan Lal', 'Chemistry', 'madanalal@gmail.com', '$2y$10$xtpbm1d3KDGHWw7Z9MDqz.D5cAVYC/Rqa7gckp2P3aFRa1DGxBFfm', '1234567890', 'No.74 17th main  sahukar chanaiyah road Saraswathipuram mysore\r\nMysore', 4, 2),
-(7, 'Pro. Prashant Neel', 'Commerce', 'prashant@gmail.com', '$2y$10$JJ9onm75bI6TRIS0zQwVXuNU2k7vnbav1odBBTI3dH0cqe768sZha', '1234567890', 'Arakalagud Hassan', 6, 0),
+(7, 'Pro. Prashant Neel', '', '', '$2y$10$bQ1k6SDonyXjT0zTTJCs1OPFKv.sJ3YqGIV3m5XBvM971q0mct2YO', '12345678901', 'Arakalagud Hassan', 6, 0),
 (8, 'Dr. Sudha Shetty ', 'BCA', 'sudha@gmail.com', '$2y$10$cfmbZ1U5cg4QRKZ3Zv6YieRk.R1yzbfUeADvh/TI9QAVgfEB4veHu', '9383734345', 'Bengaluru', 10, 1),
-(9, 'Mis. Prakruthi ', 'Commerce', 'prakruthi@gmail.com', '$2y$10$ThTNS4v6bz/gz7FrgYrNn.ostjSsI.jXa3PCcBRibuump4v3TRB2G', '9876378374', 'Hassan, Karnataka', 8, 2),
-(10, 'Prof. Suchitra ', 'Commerce', 'suchitra@gmail.com', '$2y$10$0Qkzo4ce7zR98bu2YJnrgedeffsNkrlqS2k1oem8jr/srn5za0afG', '9876378374', 'Hassan', 10, 2);
+(9, 'Mis. Prakruthi ', 'BCA', 'prakruthi@gmail.com', '$2y$10$ThTNS4v6bz/gz7FrgYrNn.ostjSsI.jXa3PCcBRibuump4v3TRB2G', '9876378374', 'Hassan, Karnataka', 8, 2),
+(10, 'Prof. Suchitra ', 'BCA', 'suchitra@gmail.com', '$2y$10$0Qkzo4ce7zR98bu2YJnrgedeffsNkrlqS2k1oem8jr/srn5za0afG', '9876378374', 'Hassan', 10, 2),
+(11, 'Elon musk', 'business department', 'Elonmusk143@gmail.com', '$2y$10$/HH6RmclFZFwSx8VEWV3YuId1OzoHOpnCHPP2NKuOfNOBfY9aCitC', '9900445566', 'mumbai', 1, 2),
+(12, 'ambani', 'business department', 'ambhani1234@gmail.com', '$2y$10$EGUkmAP0LkmPzP4biKWpx.qsdNMXOqieM0EdwLwH9J/qYh3F3ESHy', '9900445566', 'hassan', 1, 2);
 
 -- --------------------------------------------------------
 
@@ -274,17 +256,17 @@ CREATE TABLE `teacher_subjects` (
 --
 
 INSERT INTO `teacher_subjects` (`id`, `teacher_id`, `subject_id`) VALUES
-(4, 5, 26),
-(6, 9, 24),
-(7, 9, 23),
-(8, 8, 22),
-(9, 7, 28),
-(11, 4, 29),
-(13, 4, 34),
-(15, 10, 33),
-(16, 10, 30),
-(17, 6, 12),
-(18, 3, 13);
+(27, 10, 50),
+(28, 9, 49),
+(29, 8, 48),
+(30, 7, 47),
+(31, 6, 46),
+(32, 5, 45),
+(33, 4, 44),
+(34, 3, 43),
+(35, 12, 52),
+(36, 12, 52),
+(37, 12, 52);
 
 -- --------------------------------------------------------
 
@@ -300,49 +282,69 @@ CREATE TABLE `timetable` (
   `day` enum('Monday','Tuesday','Wednesday','Thursday','Friday','Saturday') NOT NULL,
   `start_time` time NOT NULL,
   `end_time` time NOT NULL,
-  `combination_id` int(11) NOT NULL
+  `combination_id` int(11) NOT NULL,
+  `section` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `timetable`
 --
 
-INSERT INTO `timetable` (`id`, `subject_id`, `teacher_id`, `classroom_id`, `day`, `start_time`, `end_time`, `combination_id`) VALUES
-(1770, 26, 5, 6, 'Friday', '15:00:00', '16:00:00', 41),
-(1771, 29, 4, 1, 'Thursday', '11:00:00', '15:00:00', 9),
-(1772, 26, 5, 14, 'Tuesday', '09:00:00', '10:00:00', 41),
-(1773, 34, 4, 2, 'Wednesday', '15:00:00', '16:00:00', 9),
-(1774, 34, 4, 12, 'Tuesday', '10:00:00', '11:00:00', 9),
-(1775, 29, 4, 10, 'Friday', '16:00:00', '20:00:00', 9),
-(1776, 23, 9, 16, 'Friday', '14:00:00', '15:00:00', 41),
-(1777, 23, 9, 15, 'Saturday', '11:00:00', '12:00:00', 41),
-(1778, 23, 9, 17, 'Wednesday', '16:00:00', '17:00:00', 41),
-(1779, 12, 6, 3, 'Tuesday', '16:00:00', '17:00:00', 9),
-(1780, 26, 5, 3, 'Thursday', '15:00:00', '16:00:00', 41),
-(1781, 24, 9, 8, 'Monday', '12:00:00', '13:00:00', 41),
-(1782, 13, 3, 18, 'Saturday', '15:00:00', '16:00:00', 9),
-(1783, 12, 6, 12, 'Monday', '16:00:00', '17:00:00', 9),
-(1784, 28, 7, 15, 'Saturday', '15:00:00', '16:00:00', 41),
-(1785, 33, 10, 17, 'Wednesday', '10:00:00', '11:00:00', 9),
-(1786, 28, 7, 11, 'Monday', '10:00:00', '11:00:00', 41),
-(1787, 22, 8, 7, 'Monday', '14:00:00', '15:00:00', 41),
-(1788, 22, 8, 6, 'Tuesday', '14:00:00', '15:00:00', 41),
-(1789, 12, 6, 2, 'Wednesday', '12:00:00', '13:00:00', 9),
-(1790, 30, 10, 9, 'Saturday', '11:00:00', '15:00:00', 9),
-(1791, 24, 9, 9, 'Monday', '11:00:00', '12:00:00', 41),
-(1792, 13, 3, 3, 'Friday', '12:00:00', '13:00:00', 9),
-(1793, 24, 9, 1, 'Wednesday', '14:00:00', '15:00:00', 41),
-(1794, 28, 7, 6, 'Friday', '11:00:00', '12:00:00', 41),
-(1795, 22, 8, 17, 'Monday', '16:00:00', '17:00:00', 41),
-(1796, 34, 4, 6, 'Wednesday', '09:00:00', '10:00:00', 9),
-(1797, 34, 4, 17, 'Wednesday', '14:00:00', '15:00:00', 9),
-(1798, 33, 10, 18, 'Wednesday', '11:00:00', '12:00:00', 9),
-(1799, 13, 3, 17, 'Friday', '10:00:00', '11:00:00', 9),
-(1800, 26, 5, 18, 'Monday', '09:00:00', '10:00:00', 41),
-(1801, 28, 7, 18, 'Tuesday', '15:00:00', '16:00:00', 41),
-(1802, 33, 10, 12, 'Thursday', '09:00:00', '10:00:00', 9),
-(1803, 30, 10, 8, 'Wednesday', '16:00:00', '20:00:00', 9),
-(1804, 24, 9, 10, 'Monday', '15:00:00', '16:00:00', 41);
+INSERT INTO `timetable` (`id`, `subject_id`, `teacher_id`, `classroom_id`, `day`, `start_time`, `end_time`, `combination_id`, `section`) VALUES
+(5875, 50, 10, 15, 'Monday', '11:00:00', '12:00:00', 48, 'B'),
+(5877, 50, 10, 15, 'Monday', '04:00:00', '05:00:00', 48, 'A'),
+(5878, 50, 10, 15, 'Monday', '12:00:00', '13:00:00', 48, 'A'),
+(5879, 50, 10, 15, 'Monday', '05:00:00', '06:00:00', 48, 'B'),
+(5881, 43, 3, 8, 'Tuesday', '09:00:00', '12:00:00', 48, 'B'),
+(5882, 47, 9, 3, 'Monday', '11:00:00', '12:00:00', 48, 'A'),
+(5883, 47, 7, 7, 'Monday', '03:00:00', '04:00:00', 48, 'B'),
+(5884, 47, 7, 7, 'Tuesday', '05:00:00', '06:00:00', 48, 'A'),
+(5885, 47, 7, 7, 'Tuesday', '02:00:00', '03:00:00', 48, 'B'),
+(5886, 47, 7, 7, 'Tuesday', '12:00:00', '13:00:00', 48, 'B'),
+(5887, 47, 7, 7, 'Tuesday', '04:00:00', '05:00:00', 48, 'B'),
+(5888, 47, 7, 7, 'Tuesday', '03:00:00', '04:00:00', 48, 'A'),
+(5889, 47, 7, 7, 'Wednesday', '11:00:00', '12:00:00', 48, 'A'),
+(5890, 47, 7, 7, 'Wednesday', '09:00:00', '10:00:00', 48, 'A'),
+(5891, 47, 7, 7, 'Wednesday', '02:00:00', '03:00:00', 48, 'B'),
+(5892, 44, 4, 14, 'Tuesday', '03:00:00', '04:00:00', 48, 'B'),
+(5893, 44, 4, 14, 'Tuesday', '02:00:00', '03:00:00', 48, 'A'),
+(5894, 44, 4, 14, 'Tuesday', '04:00:00', '05:00:00', 48, 'A'),
+(5895, 44, 4, 14, 'Wednesday', '10:00:00', '11:00:00', 48, 'A'),
+(5896, 44, 4, 14, 'Wednesday', '12:00:00', '13:00:00', 48, 'B'),
+(5897, 44, 4, 14, 'Wednesday', '09:00:00', '10:00:00', 48, 'B'),
+(5898, 43, 3, 8, 'Thursday', '09:00:00', '12:00:00', 48, 'A'),
+(5899, 48, 8, 10, 'Thursday', '09:00:00', '12:00:00', 48, 'B'),
+(5900, 49, 9, 18, 'Wednesday', '12:00:00', '13:00:00', 48, 'A'),
+(5901, 49, 9, 18, 'Wednesday', '03:00:00', '04:00:00', 48, 'B'),
+(5902, 49, 9, 18, 'Thursday', '03:00:00', '04:00:00', 48, 'A'),
+(5903, 49, 9, 18, 'Thursday', '02:00:00', '03:00:00', 48, 'B'),
+(5904, 49, 9, 18, 'Thursday', '05:00:00', '06:00:00', 48, 'A'),
+(5905, 49, 9, 18, 'Thursday', '12:00:00', '13:00:00', 48, 'A'),
+(5906, 49, 9, 18, 'Thursday', '04:00:00', '05:00:00', 48, 'B'),
+(5907, 49, 9, 18, 'Friday', '10:00:00', '11:00:00', 48, 'B'),
+(5908, 45, 5, 11, 'Thursday', '04:00:00', '05:00:00', 48, 'A'),
+(5909, 45, 5, 11, 'Thursday', '12:00:00', '13:00:00', 48, 'B'),
+(5910, 45, 5, 11, 'Thursday', '03:00:00', '04:00:00', 48, 'B'),
+(5911, 45, 5, 11, 'Friday', '03:00:00', '04:00:00', 48, 'B'),
+(5912, 45, 5, 11, 'Friday', '05:00:00', '06:00:00', 48, 'B'),
+(5913, 45, 5, 11, 'Friday', '10:00:00', '11:00:00', 48, 'A'),
+(5914, 45, 5, 11, 'Friday', '04:00:00', '05:00:00', 48, 'A'),
+(5915, 45, 5, 11, 'Friday', '09:00:00', '10:00:00', 48, 'A'),
+(5916, 46, 6, 15, 'Friday', '05:00:00', '06:00:00', 48, 'A'),
+(5917, 46, 6, 15, 'Friday', '11:00:00', '12:00:00', 48, 'B'),
+(5918, 46, 6, 15, 'Saturday', '03:00:00', '04:00:00', 48, 'B'),
+(5919, 46, 6, 15, 'Saturday', '11:00:00', '12:00:00', 48, 'B'),
+(5920, 46, 6, 15, 'Saturday', '12:00:00', '13:00:00', 48, 'A'),
+(5921, 45, 9, 10, 'Saturday', '09:00:00', '10:00:00', 48, 'A'),
+(5922, 46, 6, 15, 'Saturday', '10:00:00', '11:00:00', 48, 'A'),
+(5923, 46, 6, 15, 'Saturday', '05:00:00', '06:00:00', 48, 'B'),
+(5924, 48, 7, 9, 'Tuesday', '09:00:00', '11:00:00', 48, 'A'),
+(5925, 45, 9, 7, 'Saturday', '02:00:00', '04:00:00', 48, 'A'),
+(5926, 45, 9, 7, 'Saturday', '04:00:00', '06:00:00', 48, 'A'),
+(5927, 52, 12, 11, 'Monday', '09:00:00', '10:00:00', 48, 'A'),
+(5928, 52, 12, 13, 'Wednesday', '03:00:00', '04:00:00', 48, 'A'),
+(5929, 52, 12, 6, 'Tuesday', '11:00:00', '12:00:00', 48, 'A'),
+(5930, 52, 12, 16, 'Friday', '11:00:00', '12:00:00', 48, 'A');
 
 --
 -- Indexes for dumped tables
@@ -373,8 +375,20 @@ ALTER TABLE `combinations`
 --
 ALTER TABLE `requests`
   ADD PRIMARY KEY (`id`) USING BTREE,
-  ADD KEY `requester_id` (`requester_id`),
-  ADD KEY `entry_id` (`entry_id`);
+  ADD KEY `existing_timetable_id` (`existing_timetable_id`),
+  ADD KEY `proposed_subject_id` (`proposed_subject_id`),
+  ADD KEY `proposed_teacher_id` (`proposed_teacher_id`),
+  ADD KEY `proposed_classroom_id` (`proposed_classroom_id`),
+  ADD KEY `status_id` (`status_id`),
+  ADD KEY `teacher_id` (`teacher_id`),
+  ADD KEY `student_id` (`student_id`);
+
+--
+-- Indexes for table `request_statuses`
+--
+ALTER TABLE `request_statuses`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `status_name` (`status_name`);
 
 --
 -- Indexes for table `students`
@@ -383,14 +397,6 @@ ALTER TABLE `students`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `email` (`email`),
   ADD KEY `combination_id` (`combination_id`);
-
---
--- Indexes for table `student_timetable`
---
-ALTER TABLE `student_timetable`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `student_id` (`student_id`),
-  ADD KEY `timetable_id` (`timetable_id`);
 
 --
 -- Indexes for table `subjects`
@@ -443,49 +449,49 @@ ALTER TABLE `classrooms`
 -- AUTO_INCREMENT for table `combinations`
 --
 ALTER TABLE `combinations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
 
 --
 -- AUTO_INCREMENT for table `requests`
 --
 ALTER TABLE `requests`
-  MODIFY `id` int(225) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(225) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+
+--
+-- AUTO_INCREMENT for table `request_statuses`
+--
+ALTER TABLE `request_statuses`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `students`
 --
 ALTER TABLE `students`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
-
---
--- AUTO_INCREMENT for table `student_timetable`
---
-ALTER TABLE `student_timetable`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `subjects`
 --
 ALTER TABLE `subjects`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
 
 --
 -- AUTO_INCREMENT for table `teachers`
 --
 ALTER TABLE `teachers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `teacher_subjects`
 --
 ALTER TABLE `teacher_subjects`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
 
 --
 -- AUTO_INCREMENT for table `timetable`
 --
 ALTER TABLE `timetable`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1805;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5931;
 
 --
 -- Constraints for dumped tables
@@ -495,22 +501,19 @@ ALTER TABLE `timetable`
 -- Constraints for table `requests`
 --
 ALTER TABLE `requests`
-  ADD CONSTRAINT `requests_ibfk_1` FOREIGN KEY (`requester_id`) REFERENCES `teachers` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `requests_ibfk_2` FOREIGN KEY (`requester_id`) REFERENCES `students` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `requests_ibfk_3` FOREIGN KEY (`entry_id`) REFERENCES `timetable` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `requests_ibfk_3` FOREIGN KEY (`existing_timetable_id`) REFERENCES `timetable` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `requests_ibfk_4` FOREIGN KEY (`proposed_subject_id`) REFERENCES `subjects` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `requests_ibfk_5` FOREIGN KEY (`proposed_teacher_id`) REFERENCES `teachers` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `requests_ibfk_6` FOREIGN KEY (`proposed_classroom_id`) REFERENCES `classrooms` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `requests_ibfk_7` FOREIGN KEY (`status_id`) REFERENCES `request_statuses` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `requests_ibfk_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `requests_ibfk_teacher` FOREIGN KEY (`teacher_id`) REFERENCES `teachers` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `students`
 --
 ALTER TABLE `students`
   ADD CONSTRAINT `students_ibfk_1` FOREIGN KEY (`combination_id`) REFERENCES `combinations` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `student_timetable`
---
-ALTER TABLE `student_timetable`
-  ADD CONSTRAINT `student_timetable_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `student_timetable_ibfk_2` FOREIGN KEY (`timetable_id`) REFERENCES `timetable` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `subjects`
