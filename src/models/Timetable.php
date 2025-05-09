@@ -194,9 +194,32 @@ class Timetable
                                 $section_day_class_count["$combination_id-$section"][$day] >= 4
                             ) continue;
     
+                            // Check if this teacher already teaches this subject to this section today
+                            $already_taught_today = false;
+                            $stmtCheck = $this->conn->prepare("
+                                SELECT 1
+                                FROM timetable
+                                WHERE combination_id = :combination_id
+                                  AND section = :section
+                                  AND subject_id = :subject_id
+                                  AND teacher_id = :teacher_id
+                                  AND day = :day
+                            ");
+                            $stmtCheck->execute([
+                                ':combination_id' => $combination_id,
+                                ':section' => $section,
+                                ':subject_id' => $subject_id,
+                                ':teacher_id' => $teacher_id,
+                                ':day' => $day,
+                            ]);
+                            if ($stmtCheck->fetch()) {
+                                $already_taught_today = true;
+                                continue; // Skip to the next section
+                            }
+    
                             $conflict = false;
-                            for ($d = 0; $d < $duration; $d++) {
-                                $slot = date("H:i:s", strtotime($start) + ($d * 3600));
+                            for ($h = 0; $h < $duration; $h++) {
+                                $slot = date("H:i:s", strtotime($start) + ($h * 3600));
                                 if (
                                     isset($teacher_avail[$teacher_id][$day][$slot]) ||
                                     isset($classroom_avail[$classroom_id][$day][$slot]) ||
@@ -223,8 +246,8 @@ class Timetable
                                     ':end_time' => $end
                                 ]);
     
-                                for ($d = 0; $d < $duration; $d++) {
-                                    $slot = date("H:i:s", strtotime($start) + ($d * 3600));
+                                for ($h = 0; $h < $duration; $h++) {
+                                    $slot = date("H:i:s", strtotime($start) + ($h * 3600));
                                     $teacher_avail[$teacher_id][$day][$slot] = true;
                                     $classroom_avail[$classroom_id][$day][$slot] = true;
                                     $section_avail["$combination_id-$section"][$day][$slot] = true;
@@ -233,21 +256,13 @@ class Timetable
                                 $teacher_theory_hours[$teacher_id] += $duration;
                                 $section_subject_schedule_count[$subject_id][$section]++;
                                 $section_day_class_count["$combination_id-$section"][$day] = ($section_day_class_count["$combination_id-$section"][$day] ?? 0) + 1;
-                            }
     
-                            if ($section_subject_schedule_count[$subject_id][$section] >= $min_classes) continue;
-                        }
-    
-                        $done = true;
-                        foreach ($sections as $section) {
-                            if ($section_subject_schedule_count[$subject_id][trim($section)] < $min_classes) {
-                                $done = false;
-                                break;
+                                goto next_subject;
                             }
                         }
-                        if ($done) break;
                     }
                 }
+                next_subject:
             }
         }
     
