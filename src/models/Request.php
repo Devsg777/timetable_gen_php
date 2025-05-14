@@ -114,34 +114,49 @@ class Request {
                     r.requester_type,
                     r.request_type,
                     r.existing_timetable_id,
-                    r.proposed_subject_id,
-                    r.proposed_teacher_id,
-                    r.proposed_classroom_id,
                     r.proposed_day,
                     r.proposed_start_time,
                     r.proposed_end_time,
                     r.reason,
                     r.request_date,
                     rs.status_name,
-                    tchr_req.name AS teacher_name_requested,
-                    stud_req.name AS student_name_requested,
+                    -- Requester Information
+                    CASE
+                        WHEN r.requester_type = 'teacher' THEN tchr_req.name
+                        WHEN r.requester_type = 'student' THEN stud_req.name 
+                        ELSE 'Unknown'
+                    END AS requester_name,
                     tchr_req.id AS teacher_id_requested,
                     stud_req.id AS student_id_requested,
-                    sub.name AS proposed_subject_name,
-                    teach_prop.name AS proposed_teacher_name,
-                    cr.room_no AS proposed_classroom_name
+                    -- Existing Timetable Information
+                    tt_existing.day AS existing_day,
+                    tt_existing.start_time AS existing_start_time,
+                    tt_existing.end_time AS existing_end_time,
+                    sub_existing.name AS existing_subject_name,
+                    teach_existing.name AS existing_teacher_name,
+                    cr_existing.room_no AS existing_classroom_name,
+                    -- Proposed Information
+                    sub_proposed.name AS proposed_subject_name,
+                    teach_proposed.name AS proposed_teacher_name,
+                    cr_proposed.room_no AS proposed_classroom_name
                   FROM requests r
                   JOIN request_statuses rs ON r.status_id = rs.id
                   LEFT JOIN teachers tchr_req ON r.teacher_id = tchr_req.id
                   LEFT JOIN students stud_req ON r.student_id = stud_req.id
-                  LEFT JOIN subjects sub ON r.proposed_subject_id = sub.id
-                  LEFT JOIN teachers teach_prop ON r.proposed_teacher_id = teach_prop.id
-                  LEFT JOIN classrooms cr ON r.proposed_classroom_id = cr.id
+                  LEFT JOIN timetable tt_existing ON r.existing_timetable_id = tt_existing.id
+                  LEFT JOIN subjects sub_existing ON tt_existing.subject_id = sub_existing.id
+                  LEFT JOIN teachers teach_existing ON tt_existing.teacher_id = teach_existing.id
+                  LEFT JOIN classrooms cr_existing ON tt_existing.classroom_id = cr_existing.id
+                  LEFT JOIN subjects sub_proposed ON r.proposed_subject_id = sub_proposed.id
+                  LEFT JOIN teachers teach_proposed ON r.proposed_teacher_id = teach_proposed.id
+                  LEFT JOIN classrooms cr_proposed ON r.proposed_classroom_id = cr_proposed.id
                   WHERE r.id = :id";
+
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(":id", $id, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetch(PDO::FETCH_ASSOC);
+
     }
 
     public function getRequestsByTeacherId($teacher_id) {

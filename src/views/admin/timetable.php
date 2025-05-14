@@ -158,7 +158,7 @@ echo '<div class="alert alert-danger bg-red-200 p-3 m-3 text-center text-red-600
                                                 <a href="../../controllers/timetableController.php?delete_id=<?= htmlspecialchars($entry['entry_id'] ?? ''); ?>" class="text-red-500">
                                                     <i class="fas fa-trash text-danger" aria-hidden="true"></i>
                                                 </a>
-                                                <button onclick="handleSwap('<?= $day ?>', '<?= $slot ?>', '<?= $combination['combination_id'] ?>')" class="text-purple-600">
+                                                <button onclick="handleSwap('<?= $day ?>', '<?= $slot ?>', '<?= $combination['combination_id'] ?>','<?= $entry['entry_id'] ?? '' ;?>')" class="text-purple-600">
                                                     <i class="fa fa-exchange text-purple-400" aria-hidden="true"></i>
                                                 </button>
                                             </td>
@@ -171,10 +171,6 @@ echo '<div class="alert alert-danger bg-red-200 p-3 m-3 text-center text-red-600
                                             <td class="border border-gray-300 p-2 text-center text-gray-400">
                                                 <button onclick="openAddModal('<?= htmlspecialchars($day); ?>','<?= htmlspecialchars($slot); ?>','<?= htmlspecialchars($combination['combination_id']) ?>','<?= htmlspecialchars($combination['name']) ?>','<?= htmlspecialchars($combination['semester']) ?>','<?= htmlspecialchars($section) ?>')" class="text-green-600">
                                                     <i class="fa fa-plus text-black text-sm" aria-hidden="true"></i>
-                                                </button>
-                                                |
-                                                <button onclick="handleSwap('<?= $day ?>', '<?= $slot ?>', '<?= $combination['combination_id'] ?>')" class="text-purple-600">
-                                                    <i class="fa fa-exchange text-purple-400 text-sm" aria-hidden="true"></i>
                                                 </button>
                                             </td>
                                         <?php
@@ -316,14 +312,15 @@ echo '<div class="alert alert-danger bg-red-200 p-3 m-3 text-center text-red-600
         }
         let swapFirst = null;
 
-        function handleSwap(day, time, combinationId) {
+        function handleSwap(day, time, combinationId,entryId) {
             if (!swapFirst) {
                 swapFirst = {
                     day,
                     time,
-                    combinationId
+                    combinationId,
+                    entryId
                 };
-                alert(`Selected Slot: ${day}, ${time}`);
+                alert(`Selected Slot: ${day}, ${time},Entry ID: ${entryId}`);
             } else {
                 // Make sure both are from the same combination
                 if (swapFirst.combinationId !== combinationId) {
@@ -333,7 +330,7 @@ echo '<div class="alert alert-danger bg-red-200 p-3 m-3 text-center text-red-600
                 }
 
                 // Send swap request
-                const url = `../../controllers/timetableController.php?swap=1&day1=${swapFirst.day}&time1=${swapFirst.time}&day2=${day}&time2=${time}&combination_id=${combinationId}`;
+                const url = `../../controllers/timetableController.php?swap=1&day1=${swapFirst.day}&time1=${swapFirst.time}&day2=${day}&time2=${time}&combination_id=${combinationId}&entry1=${swapFirst.entryId}&entry2=${entryId}`;
                 window.location.href = url;
             }
         }

@@ -61,19 +61,57 @@ if (isset($_GET['swap'])) {
     $day2 = $_GET['day2'];
     $time2 = $_GET['time2'];
     $combination_id = $_GET['combination_id'];
+    $entry1 = $_GET['entry1'];
+    $entry2 = $_GET['entry2'];
 
-    // Get both entries
-    $entry1 = $timetable->getEntryByTimeSlot($combination_id, $day1, $time1);
-    $entry2 = $timetable->getEntryByTimeSlot($combination_id, $day2, $time2);
+
+    // get the timetable entries for the specified time slots
+
+    if($entry1 != '' && $entry2 != ''){
+
+    $slot1= $timetable->getEntryTimeSlot($entry1);
+    $slot2= $timetable->getEntryTimeSlot($entry2);
+     $startTime1 = $slot1['start_time'];
+    $endTime1 = $slot1['end_time'];
+    $startTime2 = $slot2['start_time'];
+    $endTime2 = $slot2['end_time']  ;
+    }else if($entry1 != '' && $entry2 == ''){
+        $slot1= $timetable->getEntryTimeSlot($entry1);
+          $startTime1 = $slot1['start_time'];
+    $endTime1 = $slot1['end_time'];
+         $time_slot = explode(" - ", $time2);
+     //  convert like this Date formate "11:00:00"
+    $startTime2 = $time_slot[0]."00";
+    $endTime2 = $time_slot[1].":00";
+    }
+    else if($entry1 == '' && $entry2 != ''){
+        $slot2= $timetable->getEntryTimeSlot($entry2);
+        $startTime2 = $slot2['start_time'];
+    $endTime2 = $slot2['end_time'];
+    $time_slot = explode(" - ", $time1);
+    $startTime1 = $time_slot[0].":00";
+    $endTime1 = $time_slot[1].":00";
+    }
+    else{
+        $time_slot1 = explode(" - ", $time1);
+        $startTime1 = $time_slot1[0].":00";
+        $endTime1 = $time_slot1[1].":00";
+
+        $time_slot2 = explode(" - ", $time2);
+        $startTime2 = $time_slot2[0].":00";
+        $endTime2 = $time_slot2[1].":00";
+    }
+
+        
 
     // Swap the data
     if ($entry1 && $entry2) {
-        $timetable->updateEntryTimeSlot($entry1['id'], $day2, $time2);
-        $timetable->updateEntryTimeSlot($entry2['id'], $day1, $time1);
+        $timetable->updateEntryTimeSlot($entry1, $day2, $startTime2,$endTime2 );
+        $timetable->updateEntryTimeSlot($entry2, $day1, $startTime1,$endTime1);
     } elseif ($entry1) {
-        $timetable->updateEntryTimeSlot($entry1['id'], $day2, $time2);
+        $timetable->updateEntryTimeSlot($entry1, $day2, $startTime2,$endTime2);
     } elseif ($entry2) {
-        $timetable->updateEntryTimeSlot($entry2['id'], $day1, $time1);
+        $timetable->updateEntryTimeSlot($entry2, $day1, $startTime1,$endTime1);
     }
 
     header("Location: ../views/admin/timetable.php?success=Timetable Entry Swapped Successfully");
